@@ -64,6 +64,12 @@
     </style>
 </head>
 <body>
+    <div id="auth-loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0f172a; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; color:white;">
+    <div style="width:40px; height:40px; border:4px solid #6366f1; border-top:4px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+    <p style="margin-top:20px; font-weight:600; letter-spacing:1px; opacity:0.8;">Checking Session...</p>
+</div>
+
+<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
 
     <div class="login-card">
         <div class="app-logo"><i class="fas fa-cube"></i></div>
@@ -79,34 +85,29 @@
     </div>
 
     <script>
-  // --- 1. SET PERSISTENCE IMMEDIATELY ---
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .then(() => {
-      // Persistence set hone ke baad check karein
-      firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-              // Agar user login hai, toh dashboard par bhej dein
-              window.location.replace("dashboard.html");
-          } else {
-              // Agar login nahi hai, toh login card dikhayein
-              document.querySelector('.login-card').style.opacity = "1";
-          }
-      });
-  });
+        // 🔥 YE LOGIC USER KO LOGIN BUTTON DEKHNE HI NAHI DEGA
+firebase.auth().onAuthStateChanged((user) => {
+    const loader = document.getElementById('auth-loading');
+    if (user) {
+        // Agar user login hai, toh button dikhaye baghair Dashboard bhej do
+        console.log("Session Active!");
+        window.location.replace("dashboard.html");
+    } else {
+        // Sirf tab loader hatao jab confirm ho jaye ke user login NAHI hai
+        console.log("No Session found.");
+        loader.style.display = "none";
+    }
+});
 
 function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    // Popup ke bajaye Redirect use karna mobile par zyada stable hai
-    firebase.auth().signInWithRedirect(provider);
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            return firebase.auth().signInWithPopup(provider);
+        })
+        .then(() => { window.location.href = "dashboard.html"; })
+        .catch((e) => { alert(e.message); loader.style.display = "none"; });
 }
-
-// Redirect ke baad result handle karne ke liye
-firebase.auth().getRedirectResult().then((result) => {
-    if (result.user) {
-        localStorage.setItem('studentName', result.user.displayName);
-        window.location.replace("dashboard.html");
-    }
-});
     </script>
 </body>
 </html>
