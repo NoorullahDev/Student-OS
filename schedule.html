@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Routine</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; --success: #10b981; }
+        body.dark-mode { --primary: #818cf8; --bg: #000000; --text: #f3f4f6; --card-bg: #1c1c1e; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 100px; transition: 0.3s; }
+
+        /* HEADER - History Button Yahan Hai */
+        .header { padding: 20px; background: var(--card-bg); position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 22px; font-weight: 800; }
+        
+        .header-icons { display: flex; gap: 15px; align-items: center; }
+        .history-btn { background: #f3f4f6; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); border: 1px solid #ddd; }
+        .coins-pill { background: #f59e0b; color: white; padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        /* OLD STYLE DAYS */
+        .days-wrapper { overflow-x: auto; display: flex; gap: 10px; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+        .day-chip { min-width: 50px; height: 70px; background: var(--card-bg); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #888; border: 1px solid rgba(0,0,0,0.05); transition: 0.2s; cursor: pointer; }
+        .day-chip.active { background: var(--primary); color: white; box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); border-color: var(--primary); transform: scale(1.05); }
+        .day-date { font-size: 18px; font-weight: 800; margin-top: 2px; }
+
+        /* OLD STYLE TASKS */
+        .task-card { background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; transition: 0.2s; border-left: 4px solid transparent; }
+        .task-card.completed { opacity: 0.6; text-decoration: line-through; border-left-color: var(--success); }
+        .checkbox { width: 24px; height: 24px; border: 2px solid #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .checkbox.checked { background: var(--success); border-color: var(--success); color: white; }
+        .task-info { flex-grow: 1; }
+        .task-time { font-size: 12px; color: var(--primary); font-weight: 700; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 6px; display: inline-block; margin-bottom: 4px; }
+        .task-title { font-size: 15px; font-weight: 600; }
+        .delete-btn { color: #ff3b30; opacity: 0.3; padding: 10px; cursor: pointer; }
+
+        /* NEW BUTTONS (FAB & REVIEW) */
+        .fab { position: fixed; bottom: 100px; right: 20px; width: 55px; height: 55px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); cursor: pointer; z-index: 40; }
+        
+        /* Highlighted Review Button */
+        .review-btn { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background: #111827; color: white; padding: 15px 30px; border-radius: 40px; 
+            font-weight: 700; font-size: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            display: flex; align-items: center; gap: 10px; z-index: 50; cursor: pointer; 
+            width: 80%; max-width: 300px; justify-content: center; border: 2px solid rgba(255,255,255,0.1);
+        }
+        .review-btn:active { transform: translateX(-50%) scale(0.95); }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { background: var(--card-bg); width: 90%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: left; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .inp { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin: 10px 0; font-family: inherit; outline: none; background: transparent; color: var(--text); }
+        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        
+        /* HISTORY LIST STYLE */
+        .history-item { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 3px solid var(--primary); }
+        .h-date { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; }
+        .h-score { font-size: 14px; font-weight: 700; margin: 3px 0; }
+        .h-plan { font-size: 13px; color: #666; font-style: italic; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-arrow-left" onclick="window.location.href='dashboard.html'" style="cursor:pointer; font-size:20px;"></i>
+            <div class="page-title">Routine</div>
+        </div>
+        <div class="header-icons">
+            <div class="coins-pill"><i class="fas fa-coins"></i> <span id="userCoins">0</span></div>
+            <div class="history-btn" onclick="openHistory()" title="View History">
+                <i class="fas fa-clock-rotate-left"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="days-wrapper" id="daysList"></div>
+        <div id="taskList"></div>
+    </div>
+
+    <div class="fab" onclick="openAddTask()"><i class="fas fa-plus"></i></div>
+
+    <div class="review-btn" onclick="startDailyReview()">
+        <i class="fas fa-moon"></i> Review Day
+    </div>
+
+
+    <div class="modal-overlay" id="addModal">
+        <div class="modal-box">
+            <h3 style="text-align:center;">New Task</h3>
+            <input type="text" id="taskTitle" class="inp" placeholder="Task Name (e.g. Study Math)">
+            <input type="time" id="taskTime" class="inp">
+            <button class="btn-primary" onclick="saveTask()">Add Task</button>
+            <button class="btn-primary" style="background:transparent; color:#888;" onclick="closeModals()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal-box">
+            <h3 style="text-align:center;">Daily Check-in 🌙</h3>
+            <p style="text-align:center; color:#888; font-size:12px; margin-bottom:15px;">Be honest, store your progress.</p>
+            
+            <label style="font-size:13px; font-weight:600;">1. Focus Level Today?</label>
+            <select class="inp" id="reviewFocus">
+                <option value="10">🔥 High (Full Focus)</option>
+                <option value="5">😐 Medium (Okay)</option>
+                <option value="0">😞 Low (Distracted)</option>
+            </select>
+
+            <label style="font-size:13px; font-weight:600;">2. Did you waste time?</label>
+            <select class="inp" id="reviewWaste">
+                <option value="10">No, Productive! ✅</option>
+                <option value="0">Yes, wasted time... ❌</option>
+            </select>
+
+            <label style="font-size:13px; font-weight:600;">3. Main Goal for Tomorrow?</label>
+            <input type="text" class="inp" placeholder="e.g. Finish Assignment" id="reviewPlan">
+
+            <button class="btn-primary" onclick="submitReview()">Submit & Save</button>
+            <button class="btn-primary" style="background:transparent; color:#888;" onclick="closeModals()">Close</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-box">
+            <h3 style="text-align:center;">Past Reviews 📜</h3>
+            <div id="historyList" style="margin-top:15px; max-height:300px; overflow-y:auto;">
+                </div>
+            <button class="btn-primary" onclick="closeModals()">Close</button>
+        </div>
+    </div>
+
+
+    <script>
+        // INIT
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        let selectedDay = days[new Date().getDay()];
+        let currentCoins = parseInt(localStorage.getItem('studentCoins')) || 0;
+
+        window.onload = function() {
+            renderDays();
+            loadTasks();
+            document.getElementById('userCoins').innerText = currentCoins;
+            if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        }
+
+        // --- OLD TASK LOGIC ---
+        function renderDays() {
+            const wrapper = document.getElementById('daysList');
+            wrapper.innerHTML = '';
+            days.forEach((day, index) => {
+                const div = document.createElement('div');
+                div.className = `day-chip ${day === selectedDay ? 'active' : ''}`;
+                div.innerHTML = `<span>${day}</span><span class="day-date">${getDateForDay(index)}</span>`;
+                div.onclick = () => { selectedDay = day; renderDays(); loadTasks(); };
+                wrapper.appendChild(div);
+            });
+        }
+        function getDateForDay(dayIndex) {
+            const d = new Date(); d.setDate(d.getDate() + (dayIndex - d.getDay()));
+            return d.getDate();
+        }
+        function loadTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            const schedule = JSON.parse(localStorage.getItem('studentSchedule')) || {};
+            const tasks = schedule[selectedDay] || [];
+            if(tasks.length === 0) { list.innerHTML = '<div style="text-align:center; padding:40px; color:#ccc;">No tasks today</div>'; return; }
+            tasks.forEach((task, index) => {
+                list.innerHTML += `
+                    <div class="task-card ${task.completed ? 'completed' : ''}">
+                        <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask(${index})"><i class="fas fa-check" style="font-size:12px; color:white;"></i></div>
+                        <div class="task-info"><span class="task-time">${task.time}</span><div class="task-title">${task.title}</div></div>
+                        <div class="delete-btn" onclick="deleteTask(${index})"><i class="fas fa-trash"></i></div>
+                    </div>`;
+            });
+        }
+        function saveTask() {
+            const title = document.getElementById('taskTitle').value;
+            const time = document.getElementById('taskTime').value;
+            if(!title) return;
+            const schedule = JSON.parse(localStorage.getItem('studentSchedule')) || {};
+            if(!schedule[selectedDay]) schedule[selectedDay] = [];
+            schedule[selectedDay].push({ title, time, completed: false });
+            schedule[selectedDay].sort((a,b) => a.time.localeCompare(b.time));
+            localStorage.setItem('studentSchedule', JSON.stringify(schedule));
+            closeModals(); loadTasks();
+        }
+        function toggleTask(i) {
+            const schedule = JSON.parse(localStorage.getItem('studentSchedule'));
+            schedule[selectedDay][i].completed = !schedule[selectedDay][i].completed;
+            localStorage.setItem('studentSchedule', JSON.stringify(schedule));
+            loadTasks();
+        }
+        function deleteTask(i) {
+            const schedule = JSON.parse(localStorage.getItem('studentSchedule'));
+            schedule[selectedDay].splice(i, 1);
+            localStorage.setItem('studentSchedule', JSON.stringify(schedule));
+            loadTasks();
+        }
+
+        // --- NEW REVIEW & HISTORY SYSTEM ---
+        function startDailyReview() { document.getElementById('reviewModal').style.display = 'flex'; }
+
+        function submitReview() {
+            const focus = document.getElementById('reviewFocus').value;
+            const waste = parseInt(document.getElementById('reviewWaste').value);
+            const plan = document.getElementById('reviewPlan').value || "No plan";
+            const date = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+            // 1. Save to History
+            let history = JSON.parse(localStorage.getItem('studentHistory')) || [];
+            history.unshift({ date, focus, waste, plan }); // Newest first
+            localStorage.setItem('studentHistory', JSON.stringify(history));
+
+            // 2. Give Coins
+            let reward = 20 + waste; 
+            if(focus == "10") reward += 10;
+            currentCoins += reward;
+            localStorage.setItem('studentCoins', currentCoins);
+            document.getElementById('userCoins').innerText = currentCoins;
+
+            closeModals();
+            alert(`✅ Saved! +${reward} Coins Earned!`);
+        }
+
+        function openHistory() {
+            const history = JSON.parse(localStorage.getItem('studentHistory')) || [];
+            const list = document.getElementById('historyList');
+            list.innerHTML = "";
+
+            if(history.length === 0) {
+                list.innerHTML = "<p style='color:#ccc;'>No past reviews found.</p>";
+            } else {
+                history.forEach(h => {
+                    let focusText = h.focus == "10" ? "🔥 High Focus" : (h.focus == "5" ? "😐 Medium" : "😞 Distracted");
+                    let wasteText = h.waste == "10" ? "✅ Productive" : "❌ Wasted Time";
+                    
+                    list.innerHTML += `
+                        <div class="history-item">
+                            <div class="h-date">${h.date}</div>
+                            <div class="h-score">${focusText} • ${wasteText}</div>
+                            <div class="h-plan">Goal: "${h.plan}"</div>
+                        </div>`;
+                });
+            }
+            document.getElementById('historyModal').style.display = 'flex';
+        }
+
+        // --- UTILS ---
+        function openAddTask() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e => e.style.display='none'); }
+    </script>
+</body>
+</html>

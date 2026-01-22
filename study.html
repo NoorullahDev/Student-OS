@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Focus Mode</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #6366f1; --bg: #0f172a; --text: #ffffff; }
+        * { box-sizing: border-box; }
+        
+        body { 
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text); 
+            font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; display: flex; flex-direction: column; 
+        }
+
+        /* TIMER HEADER */
+        .timer-header {
+            background: #1e293b; padding: 15px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 50; flex-shrink: 0;
+        }
+        .timer-display { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; color: #a5b4fc; }
+        .sub-name { font-size: 14px; color: #94a3b8; font-weight: 600; text-transform: uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 150px; }
+
+        .control-btn {
+            width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            transition: 0.2s;
+        }
+        .btn-play { background: var(--primary); color: white; }
+        .btn-pause { background: #ef4444; color: white; display: none; }
+        .btn-namaz { background: #059669; color: white; margin-right: 10px; }
+
+        /* VIEWER AREA */
+        .file-viewer {
+            flex-grow: 1; background: #000; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        iframe, img { width: 100%; height: 100%; border: none; object-fit: contain; }
+        video { width: 100%; height: 100%; object-fit: contain; outline: none; }
+        
+        .empty-state { text-align: center; color: #94a3b8; padding: 20px; }
+
+        /* FOOTER */
+        .footer-bar {
+            background: #1e293b; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .finish-link { color: #f43f5e; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+        /* PAUSE OVERLAY */
+        .pause-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 100; display: none;
+            flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+        .resume-btn { padding: 15px 40px; border-radius: 30px; background: white; color: black; border: none; font-weight: 700; cursor: pointer; margin-top: 20px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="timer-header">
+        <div>
+            <div class="sub-name" id="fileNameDisp">Loading...</div>
+            <div class="timer-display" id="display">00:00</div>
+        </div>
+        <div style="display:flex;">
+            <button class="control-btn btn-namaz" onclick="takeBreak()"><i class="fas fa-mosque"></i></button>
+            <button class="control-btn btn-play" id="startBtn" onclick="toggleTimer()"><i class="fas fa-play"></i></button>
+            <button class="control-btn btn-pause" id="pauseBtn" onclick="toggleTimer()"><i class="fas fa-pause"></i></button>
+        </div>
+    </div>
+
+    <div class="file-viewer" id="viewerArea">
+        <div class="empty-state"><p>Loading File...</p></div>
+    </div>
+
+    <div class="footer-bar">
+        <span style="font-size:12px; color:#64748b;">Study & Watch</span>
+        <div class="finish-link" onclick="finishSession()">End Session</div>
+    </div>
+
+    <div class="pause-overlay" id="pauseScreen">
+        <i class="fas fa-mosque" style="font-size:60px; color:#10b981; margin-bottom:20px;"></i>
+        <h2 style="color:white;">Paused</h2>
+        <button class="resume-btn" onclick="resumeTimer()">Resume</button>
+    </div>
+
+    <script>
+        let seconds = 0;
+        let isRunning = false;
+        let timerInterval;
+
+        window.onload = function() {
+            const fileId = localStorage.getItem('studyFileId');
+            const fileName = localStorage.getItem('studyFileName');
+
+            if(fileId && fileName) {
+                document.getElementById('fileNameDisp').innerText = fileName;
+                loadFileContent(parseInt(fileId));
+            } else {
+                document.getElementById('fileNameDisp').innerText = "Timer Mode";
+                document.getElementById('viewerArea').innerHTML = "<div class='empty-state'><p>No file selected.</p></div>";
+            }
+        };
+
+        function loadFileContent(id) {
+            const request = indexedDB.open("StudentOS_Vault", 1);
+            request.onsuccess = function(e) {
+                const db = e.target.result;
+                const tx = db.transaction(["files"], "readonly");
+                const req = tx.objectStore("files").get(id);
+
+                req.onsuccess = function(ev) {
+                    const file = ev.target.result;
+                    const viewer = document.getElementById('viewerArea');
+                    
+                    if(file) {
+                        const url = URL.createObjectURL(file.blob);
+                        
+                        // CHECK FILE TYPE
+                        if(file.type.includes('image')) {
+                            viewer.innerHTML = `<img src="${url}">`;
+                        } else if(file.type.includes('pdf')) {
+                            viewer.innerHTML = `<iframe src="${url}"></iframe>`;
+                        } else if(file.type.includes('video')) {
+                            // VIDEO PLAYER
+                            viewer.innerHTML = `
+                                <video controls style="width:100%; height:100%;">
+                                    <source src="${url}" type="${file.type}">
+                                    Your browser does not support video.
+                                </video>`;
+                        } else {
+                            viewer.innerHTML = `<div class="empty-state"><p>Format not supported.</p></div>`;
+                        }
+                    }
+                };
+            };
+        }
+
+        // TIMER LOGIC
+        function toggleTimer() { if(isRunning) pause(); else start(); }
+        
+        function start() {
+            isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'flex';
+            timerInterval = setInterval(() => { seconds++; updateDisplay(); }, 1000);
+        }
+
+        function pause() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('startBtn').style.display = 'flex';
+            document.getElementById('pauseBtn').style.display = 'none';
+        }
+
+        function updateDisplay() {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('display').innerText = `${m}:${s}`;
+        }
+
+        function takeBreak() { pause(); document.getElementById('pauseScreen').style.display = 'flex'; }
+        function resumeTimer() { document.getElementById('pauseScreen').style.display = 'none'; start(); }
+
+        function finishSession() {
+            pause();
+            if(seconds > 60) {
+                const today = new Date().toDateString();
+                const lastDate = localStorage.getItem('lastLoginDate');
+                let streak = parseInt(localStorage.getItem('streakCount')) || 0;
+                if (lastDate !== today) { streak++; localStorage.setItem('streakCount', streak); localStorage.setItem('lastLoginDate', today); alert("🔥 Streak +1"); } 
+                else { alert("✅ Session Saved"); }
+            }
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

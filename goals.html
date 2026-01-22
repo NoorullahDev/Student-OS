@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analytics & Goals</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; }
+        body.dark-mode { --primary: #818cf8; --bg: #000000; --text: #f3f4f6; --card-bg: #1c1c1e; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; transition: 0.3s; }
+
+        .header { padding: 20px; background: var(--card-bg); position: sticky; top: 0; z-index: 50; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 22px; font-weight: 800; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        
+        /* ANALYTICS CARD */
+        .analytics-hero {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white; padding: 25px; border-radius: 20px; text-align: center;
+            margin-bottom: 25px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.4);
+        }
+        .rank-title { font-size: 24px; font-weight: 800; margin: 10px 0; background: -webkit-linear-gradient(#f59e0b, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .xp-text { font-size: 13px; color: #94a3b8; margin-bottom: 15px; }
+        
+        /* STATS GRID */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: var(--card-bg); padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .stat-num { font-size: 22px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; }
+
+        /* WEEKLY CHART (Simple CSS Bar Chart) */
+        .chart-card { background: var(--card-bg); padding: 20px; border-radius: 20px; margin-bottom: 25px; }
+        .chart-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 700; }
+        .bar-container { display: flex; justify-content: space-between; align-items: flex-end; height: 120px; padding-top: 20px; }
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
+        .bar { width: 8px; background: #e5e7eb; border-radius: 10px; transition: 1s; height: 10%; position: relative; }
+        .bar.filled { background: var(--primary); }
+        .bar-day { font-size: 10px; color: #999; font-weight: 600; }
+
+        /* GOALS SECTION */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 10px; }
+        .sec-title { font-size: 16px; font-weight: 700; }
+        
+        .goal-card { background: var(--card-bg); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
+        .goal-icon { width: 40px; height: 40px; background: rgba(99, 102, 241, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--primary); }
+        .goal-info { flex-grow: 1; }
+        .goal-title { font-size: 14px; font-weight: 700; }
+        .progress-track { width: 100%; height: 6px; background: #f3f4f6; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 50%; border-radius: 10px; }
+        
+        /* TROPHY CABINET */
+        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .badge { background: var(--card-bg); padding: 15px 5px; border-radius: 12px; text-align: center; opacity: 0.5; filter: grayscale(1); transition: 0.3s; }
+        .badge.unlocked { opacity: 1; filter: grayscale(0); border: 1px solid #f59e0b; background: #fffbeb; }
+        .badge i { font-size: 24px; margin-bottom: 5px; display: block; }
+        .badge-name { font-size: 10px; font-weight: 700; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-box { background: var(--card-bg); width: 90%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; }
+        .inp { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin: 10px 0; outline: none; background: transparent; color: var(--text); }
+        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fas fa-arrow-left" onclick="window.location.href='dashboard.html'" style="cursor:pointer; font-size:20px;"></i>
+            <div class="page-title">Analytics</div>
+        </div>
+        <div style="font-weight:700; color:#f59e0b;"><i class="fas fa-coins"></i> <span id="userCoins">0</span></div>
+    </div>
+
+    <div class="container">
+
+        <div class="analytics-hero">
+            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; opacity:0.7;">Current Rank</div>
+            <div class="rank-title" id="rankName">NOVICE</div>
+            <div class="xp-text">Level <span id="levelNum">1</span> • <span id="xpLeft">100</span> XP to next level</div>
+            <div class="progress-track" style="background:rgba(255,255,255,0.2);"><div class="progress-fill" id="xpBar" style="background:#f59e0b; width:0%;"></div></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-num" id="streakDisplay">0</div>
+                <div class="stat-label">Day Streak 🔥</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="totalTasks">0</div>
+                <div class="stat-label">Tasks Done ✅</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <span>Weekly Focus</span>
+                <span style="font-size:12px; color:#888;">Last 7 Reviews</span>
+            </div>
+            <div class="bar-container" id="chartBars">
+                </div>
+        </div>
+
+        <div class="section-header">
+            <span class="sec-title">My Goals 🎯</span>
+            <i class="fas fa-plus-circle" style="color:var(--primary); font-size:20px; cursor:pointer;" onclick="openGoalModal()"></i>
+        </div>
+        <div id="goalsList">
+            </div>
+
+        <div class="section-header"><span class="sec-title">Trophy Cabinet 🏆</span></div>
+        <div class="badge-grid">
+            <div class="badge" id="badge-streak">
+                <i class="fas fa-fire" style="color:#f59e0b;"></i>
+                <div class="badge-name">7 Day Streak</div>
+            </div>
+            <div class="badge" id="badge-rich">
+                <i class="fas fa-coins" style="color:#ffd700;"></i>
+                <div class="badge-name">Rich Student</div>
+            </div>
+            <div class="badge" id="badge-pro">
+                <i class="fas fa-crown" style="color:#6366f1;"></i>
+                <div class="badge-name">Task Master</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="goalModal">
+        <div class="modal-box">
+            <h3>New Goal</h3>
+            <input type="text" id="goalTitle" class="inp" placeholder="Goal (e.g. Learn React)">
+            <label style="font-size:12px; color:#888;">Progress %</label>
+            <input type="range" id="goalProgress" class="inp" min="0" max="100" value="0">
+            <button class="btn-primary" onclick="saveGoal()">Save Goal</button>
+            <button class="btn-primary" style="background:transparent; color:#888;" onclick="document.getElementById('goalModal').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // INIT
+        window.onload = function() {
+            loadStats();
+            loadGoals();
+            renderChart();
+            if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        }
+
+        // --- 1. STATS & RANK LOGIC ---
+        function loadStats() {
+            const coins = parseInt(localStorage.getItem('studentCoins')) || 0;
+            const streak = parseInt(localStorage.getItem('streakCount')) || 0;
+            
+            // Calculate Level
+            const level = Math.floor(coins / 100) + 1;
+            const xp = coins % 100;
+            
+            // Rank Names
+            const ranks = ["Novice", "Apprentice", "Scholar", "Master", "Legend"];
+            const rankName = ranks[Math.min(level-1, 4)];
+
+            // Update UI
+            document.getElementById('userCoins').innerText = coins;
+            document.getElementById('rankName').innerText = rankName;
+            document.getElementById('levelNum').innerText = level;
+            document.getElementById('xpLeft').innerText = (100 - xp);
+            document.getElementById('xpBar').style.width = xp + "%";
+            document.getElementById('streakDisplay').innerText = streak;
+            
+            // Calculate Total Tasks (Approximation based on coins for now)
+            document.getElementById('totalTasks').innerText = Math.floor(coins / 10); 
+
+            // Check Badges
+            if(streak >= 7) document.getElementById('badge-streak').classList.add('unlocked');
+            if(coins >= 500) document.getElementById('badge-rich').classList.add('unlocked');
+            if(level >= 5) document.getElementById('badge-pro').classList.add('unlocked');
+        }
+
+        // --- 2. CHART LOGIC (READS HISTORY) ---
+        function renderChart() {
+            const history = JSON.parse(localStorage.getItem('studentHistory')) || [];
+            const chartContainer = document.getElementById('chartBars');
+            chartContainer.innerHTML = '';
+            
+            // Get last 7 entries (or pad with empty)
+            let data = history.slice(0, 7).reverse(); 
+            // NOTE: history is stored Newest -> Oldest. We reverse for chart (Old -> New)
+            
+            // If empty, show placeholders
+            while(data.length < 7) { data.unshift({ focus: 0, date: '-' }); }
+
+            data.forEach(entry => {
+                let height = entry.focus * 10; // Focus 10 = 100px
+                if(height === 0) height = 10; // Min height
+                
+                const color = entry.focus >= 10 ? 'var(--primary)' : (entry.focus >= 5 ? '#f59e0b' : '#e5e7eb');
+                
+                const dayLabel = entry.date !== '-' ? entry.date.split(',')[0] : '-'; // Get "Mon" from date string
+
+                chartContainer.innerHTML += `
+                    <div class="bar-group">
+                        <div class="bar" style="height:${height}%; background:${color}"></div>
+                        <div class="bar-day">${dayLabel}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- 3. GOALS SYSTEM ---
+        function loadGoals() {
+            const goals = JSON.parse(localStorage.getItem('studentGoals')) || [];
+            const list = document.getElementById('goalsList');
+            list.innerHTML = "";
+            
+            if(goals.length === 0) list.innerHTML = "<p style='text-align:center; color:#ccc; font-size:12px;'>No goals set.</p>";
+
+            goals.forEach((g, i) => {
+                list.innerHTML += `
+                    <div class="goal-card">
+                        <div class="goal-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="goal-info">
+                            <div class="goal-title" style="display:flex; justify-content:space-between;">
+                                ${g.title} <span style="font-size:12px; color:#888;">${g.progress}%</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill" style="width:${g.progress}%"></div></div>
+                        </div>
+                        <i class="fas fa-trash" style="color:#ff3b30; opacity:0.3; cursor:pointer;" onclick="deleteGoal(${i})"></i>
+                    </div>
+                `;
+            });
+        }
+
+        function saveGoal() {
+            const title = document.getElementById('goalTitle').value;
+            const progress = document.getElementById('goalProgress').value;
+            if(!title) return;
+
+            const goals = JSON.parse(localStorage.getItem('studentGoals')) || [];
+            goals.push({ title, progress });
+            localStorage.setItem('studentGoals', JSON.stringify(goals));
+            
+            document.getElementById('goalModal').style.display='none';
+            loadGoals();
+        }
+
+        function deleteGoal(index) {
+            if(confirm("Delete Goal?")) {
+                const goals = JSON.parse(localStorage.getItem('studentGoals'));
+                goals.splice(index, 1);
+                localStorage.setItem('studentGoals', JSON.stringify(goals));
+                loadGoals();
+            }
+        }
+
+        function openGoalModal() { document.getElementById('goalModal').style.display = 'flex'; }
+
+    </script>
+</body>
+</html>

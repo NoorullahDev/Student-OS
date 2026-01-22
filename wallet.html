@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Student Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #10b981; --dark: #064e3b; --bg: #f0fdf4; --text: #2b2d42; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+        /* HEADER */
+        .wallet-header {
+            background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 50; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        .page-title { font-size: 20px; font-weight: 700; color: #333; }
+
+        .container { padding: 25px 20px; max-width: 600px; margin: 0 auto; }
+
+        /* ATM CARD DESIGN */
+        .atm-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white; padding: 25px; border-radius: 20px; position: relative;
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); overflow: hidden; margin-bottom: 30px;
+        }
+        .chip {
+            width: 40px; height: 30px; background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
+            border-radius: 5px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.1);
+        }
+        .balance-label { font-size: 12px; opacity: 0.8; letter-spacing: 1px; }
+        .balance-amount { font-size: 32px; font-weight: 700; margin-bottom: 20px; }
+        .card-details { display: flex; justify-content: space-between; align-items: flex-end; }
+        .card-holder { font-size: 14px; font-weight: 600; text-transform: uppercase; }
+        .card-logo { font-size: 24px; font-style: italic; font-weight: 800; opacity: 0.8; }
+        
+        /* Decorative Circles on Card */
+        .circle-1 { position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+        .circle-2 { position: absolute; bottom: -40px; left: -20px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+
+        /* ACTION BUTTONS */
+        .action-row { display: flex; gap: 15px; margin-bottom: 30px; }
+        .action-btn {
+            flex: 1; padding: 15px; border-radius: 15px; border: none; cursor: pointer;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s;
+        }
+        .btn-add { background: #d1fae5; color: #059669; }
+        .btn-spend { background: #fee2e2; color: #b91c1c; }
+        .action-btn:hover { transform: translateY(-3px); }
+
+        /* TRANSACTION LIST */
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        
+        .transaction-item {
+            background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.02);
+        }
+        .t-left { display: flex; align-items: center; gap: 15px; }
+        .t-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .icon-income { background: #d1fae5; color: #059669; }
+        .icon-expense { background: #fee2e2; color: #ef4444; }
+        
+        .t-info h4 { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 2px; }
+        .t-info p { font-size: 11px; color: #888; }
+        
+        .t-amount { font-weight: 700; font-size: 14px; }
+        .plus { color: #10b981; }
+        .minus { color: #ef4444; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;
+        }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 600; color: #888; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        
+        .btn-save { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div class="wallet-header">
+        <i class="fas fa-arrow-left" style="font-size:20px; cursor:pointer;" onclick="window.location.href='dashboard.html'"></i>
+        <div class="page-title">My Wallet</div>
+        <i class="fas fa-ellipsis-v" style="color:#888;"></i>
+    </div>
+
+    <div class="container">
+        
+        <div class="atm-card">
+            <div class="circle-1"></div>
+            <div class="circle-2"></div>
+            <div class="chip"></div>
+            <div class="balance-label">Total Balance</div>
+            <div class="balance-amount" id="displayBalance">Rs. 0</div>
+            
+            <div class="card-details">
+                <div class="card-holder">Noorullah</div>
+                <div class="card-logo">VISA</div>
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button class="action-btn btn-add" onclick="openModal('income')">
+                <i class="fas fa-arrow-down"></i> Add Money
+            </button>
+            <button class="action-btn btn-spend" onclick="openModal('expense')">
+                <i class="fas fa-arrow-up"></i> Expense
+            </button>
+        </div>
+
+        <div class="section-title">
+            <span>Recent Transactions</span>
+            <span style="font-size:12px; color:var(--primary); cursor:pointer;">View All</span>
+        </div>
+
+        <div id="transactionList">
+            </div>
+
+    </div>
+
+    <div class="modal-overlay" id="moneyModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom:15px;" id="modalTitle">Add Expense</h3>
+            
+            <div class="input-group">
+                <label>Description</label>
+                <input type="text" id="tDesc" placeholder="e.g. Burger, Photocopy">
+            </div>
+
+            <div class="input-group">
+                <label>Amount (Rs)</label>
+                <input type="number" id="tAmount" placeholder="0">
+            </div>
+
+            <button class="btn-save" onclick="saveTransaction()">Save</button>
+            <button style="width:100%; margin-top:10px; background:none; border:none; color:#888; cursor:pointer;" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Init Storage
+        let balance = parseInt(localStorage.getItem('walletBalance')) || 0;
+        let currentType = 'expense';
+
+        // Update UI on load
+        updateUI();
+
+        function updateUI() {
+            document.getElementById('displayBalance').innerText = "Rs. " + balance.toLocaleString();
+        }
+
+        // Modal Logic
+        function openModal(type) {
+            currentType = type;
+            const title = document.getElementById('modalTitle');
+            const saveBtn = document.querySelector('.btn-save');
+            
+            if(type === 'income') {
+                title.innerText = "Add Pocket Money 💰";
+                saveBtn.style.background = "#10b981";
+            } else {
+                title.innerText = "Add Expense 💸";
+                saveBtn.style.background = "#ef4444";
+            }
+            document.getElementById('moneyModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('moneyModal').style.display = 'none';
+        }
+
+        // Save Logic
+        function saveTransaction() {
+            const desc = document.getElementById('tDesc').value;
+            const amount = parseInt(document.getElementById('tAmount').value);
+
+            if(!desc || !amount) { alert("Please fill details"); return; }
+
+            // Update Balance
+            if(currentType === 'income') {
+                balance += amount;
+            } else {
+                balance -= amount;
+            }
+            
+            // Save to LocalStorage
+            localStorage.setItem('walletBalance', balance);
+            updateUI();
+
+            // Create Visual Entry
+            const list = document.getElementById('transactionList');
+            
+            const iconClass = currentType === 'income' ? 'icon-income' : 'icon-expense';
+            const icon = currentType === 'income' ? 'fa-arrow-down' : 'fa-arrow-up';
+            const sign = currentType === 'income' ? '+' : '-';
+            const colorClass = currentType === 'income' ? 'plus' : 'minus';
+
+            const item = `
+                <div class="transaction-item">
+                    <div class="t-left">
+                        <div class="t-icon ${iconClass}"><i class="fas ${icon}"></i></div>
+                        <div class="t-info">
+                            <h4>${desc}</h4>
+                            <p>Just Now</p>
+                        </div>
+                    </div>
+                    <div class="t-amount ${colorClass}">${sign} Rs. ${amount}</div>
+                </div>
+            `;
+            
+            list.innerHTML = item + list.innerHTML; // Add to top
+
+            // Clear & Close
+            document.getElementById('tDesc').value = "";
+            document.getElementById('tAmount').value = "";
+            closeModal();
+        }
+    </script>
+
+</body>
+</html>

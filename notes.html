@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Smart Notebook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #4361ee; --bg: #f4f6f8; --text: #2b2d42; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* HEADER */
+        .notes-header {
+            background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 50;
+        }
+        .header-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        
+        /* FOLDER SCROLLER (Subject Categories) */
+        .folders-bar {
+            padding: 15px 20px; background: white; overflow-x: auto; white-space: nowrap;
+            -webkit-overflow-scrolling: touch; border-bottom: 1px solid #eee;
+        }
+        .folders-bar::-webkit-scrollbar { display: none; }
+
+        .folder-chip {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 15px; border-radius: 20px;
+            background: #f8f9fa; border: 1px solid #eee; margin-right: 10px; font-size: 13px; font-weight: 600;
+            color: #666; cursor: pointer; transition: 0.3s;
+        }
+        .folder-chip.active { background: #eef2ff; border-color: var(--primary); color: var(--primary); }
+        .folder-chip i { font-size: 14px; }
+
+        /* NOTES GRID */
+        .notes-container { padding: 20px; flex-grow: 1; overflow-y: auto; }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+
+        .note-card {
+            background: #fff8e1; /* Yellow Sticky Note feel */
+            padding: 20px; border-radius: 15px; min-height: 160px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s; position: relative;
+        }
+        .note-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        
+        .note-content { font-size: 13px; color: #444; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; }
+        .note-date { font-size: 10px; color: #888; margin-top: 10px; display: flex; justify-content: space-between; }
+        
+        /* Different Colors for Notes */
+        .color-yellow { background: #fff8e1; }
+        .color-blue { background: #e3f2fd; }
+        .color-green { background: #e8f5e9; }
+        .color-pink { background: #fce4ec; }
+
+        /* FLOATING ADD BUTTON */
+        .fab-add {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background: var(--primary); color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4); cursor: pointer; z-index: 90;
+        }
+
+        /* EDITOR MODAL (Full Screen) */
+        #editorModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 2000; display: none; flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+
+        .editor-header {
+            padding: 15px 20px; border-bottom: 1px solid #eee; display: flex;
+            justify-content: space-between; align-items: center; background: #f9f9f9;
+        }
+        .btn-close { font-size: 24px; cursor: pointer; color: #888; }
+        .btn-save { padding: 8px 20px; background: var(--primary); color: white; border-radius: 20px; border: none; font-weight: 600; cursor: pointer; }
+
+        .editor-body { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; }
+        
+        .note-title-input {
+            width: 100%; border: none; font-size: 22px; font-weight: 700; outline: none;
+            margin-bottom: 15px; color: var(--text); background: transparent;
+        }
+        .note-body-input {
+            width: 100%; flex-grow: 1; border: none; font-size: 16px; line-height: 1.6;
+            outline: none; resize: none; color: #555; background: transparent;
+        }
+
+        /* COLOR PICKER IN EDITOR */
+        .color-options { display: flex; gap: 10px; margin-bottom: 10px; }
+        .color-circle { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+        .color-circle.selected { border-color: #333; transform: scale(1.1); }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="notes-header">
+        <div class="header-title">
+            <i class="fas fa-arrow-left" style="cursor:pointer;" onclick="window.location.href='dashboard.html'"></i>
+            Smart Notebook
+        </div>
+        <i class="fas fa-search" style="color:#888;"></i>
+    </div>
+
+    <div class="folders-bar">
+        <div class="folder-chip active" onclick="filterNotes('all', this)"><i class="fas fa-layer-group"></i> All</div>
+        <div class="folder-chip" onclick="filterNotes('Physics', this)"><i class="fas fa-atom"></i> Physics</div>
+        <div class="folder-chip" onclick="filterNotes('ICT', this)"><i class="fas fa-laptop-code"></i> ICT</div>
+        <div class="folder-chip" onclick="filterNotes('Maths', this)"><i class="fas fa-calculator"></i> Maths</div>
+        <div class="folder-chip" onclick="filterNotes('Personal', this)"><i class="fas fa-user-lock"></i> Personal</div>
+    </div>
+
+    <div class="notes-container">
+        <div class="notes-grid" id="notesGrid">
+            
+            <div class="note-card color-yellow">
+                <h4 style="margin-bottom:5px;">Newton's Laws</h4>
+                <div class="note-content">
+                    1. Every object persists in its state of rest or uniform motion...
+                    2. F = ma is the most important equation.
+                </div>
+                <div class="note-date"><span>Physics</span> <span>Today</span></div>
+            </div>
+
+            <div class="note-card color-blue">
+                <h4 style="margin-bottom:5px;">Project Ideas</h4>
+                <div class="note-content">
+                    - Build a Student OS App
+                    - Include Gym Tracker
+                    - Make it responsive for iPhone
+                </div>
+                <div class="note-date"><span>Personal</span> <span>Yesterday</span></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="fab-add" onclick="openEditor()"><i class="fas fa-pen"></i></div>
+
+    <div id="editorModal">
+        <div class="editor-header">
+            <i class="fas fa-times btn-close" onclick="closeEditor()"></i>
+            <button class="btn-save" onclick="saveNote()">Save Note</button>
+        </div>
+        
+        <div class="editor-body">
+            <div class="color-options">
+                <div class="color-circle" style="background:#fff8e1;" onclick="setColor('color-yellow', this)"></div>
+                <div class="color-circle" style="background:#e3f2fd;" onclick="setColor('color-blue', this)"></div>
+                <div class="color-circle" style="background:#e8f5e9;" onclick="setColor('color-green', this)"></div>
+                <div class="color-circle" style="background:#fce4ec;" onclick="setColor('color-pink', this)"></div>
+            </div>
+
+            <input type="text" id="nTitle" class="note-title-input" placeholder="Title...">
+            <textarea id="nBody" class="note-body-input" placeholder="Start typing your thoughts..."></textarea>
+            
+            <input type="hidden" id="nColor" value="color-yellow">
+        </div>
+    </div>
+
+    <script>
+        // --- 1. OPEN / CLOSE EDITOR ---
+        function openEditor() {
+            document.getElementById('editorModal').style.display = 'flex';
+        }
+        function closeEditor() {
+            document.getElementById('editorModal').style.display = 'none';
+        }
+
+        // --- 2. COLOR PICKER LOGIC ---
+        function setColor(colorClass, btn) {
+            document.getElementById('nColor').value = colorClass;
+            // Remove border from all
+            document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('selected'));
+            // Add border to clicked
+            btn.classList.add('selected');
+            // Change background slightly to show preview
+            document.querySelector('.editor-body').style.backgroundColor = getComputedStyle(btn).backgroundColor;
+        }
+
+        // --- 3. SAVE NOTE LOGIC ---
+        function saveNote() {
+            const title = document.getElementById('nTitle').value;
+            const body = document.getElementById('nBody').value;
+            const color = document.getElementById('nColor').value;
+            
+            if(!title && !body) { closeEditor(); return; }
+
+            const newNote = `
+                <div class="note-card ${color}">
+                    <h4 style="margin-bottom:5px;">${title || 'Untitled'}</h4>
+                    <div class="note-content">${body}</div>
+                    <div class="note-date"><span>Uncategorized</span> <span>Just Now</span></div>
+                </div>
+            `;
+
+            // Add to grid
+            const grid = document.getElementById('notesGrid');
+            grid.innerHTML = newNote + grid.innerHTML;
+
+            // Cleanup
+            document.getElementById('nTitle').value = "";
+            document.getElementById('nBody').value = "";
+            document.querySelector('.editor-body').style.backgroundColor = "transparent";
+            closeEditor();
+        }
+
+        // --- 4. FOLDER FILTER (Visual Only) ---
+        function filterNotes(category, btn) {
+            document.querySelectorAll('.folder-chip').forEach(f => f.classList.remove('active'));
+            btn.classList.add('active');
+            // Real app mein yahan filtering code aayega
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Prayer Tracker - Student OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #059669; --bg: #f0fdf4; --text: #064e3b; }
+        body { margin: 0; background: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); padding-bottom: 50px; }
+        
+        .header { background: linear-gradient(135deg, #064e3b, #065f46); color: white; padding: 40px 20px; border-radius: 0 0 30px 30px; text-align: center; box-shadow: 0 10px 30px rgba(6, 78, 59, 0.2); }
+        .hadith-card { background: white; margin: -20px 20px 20px; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+        
+        .prayer-list { padding: 0 20px; }
+        .prayer-item { background: white; padding: 18px; border-radius: 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .prayer-info h3 { margin: 0; font-size: 16px; }
+        .prayer-info span { font-size: 12px; opacity: 0.6; }
+
+        .check-circle { width: 30px; height: 30px; border: 2px solid #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .check-circle.done { background: var(--primary); border-color: var(--primary); color: white; }
+
+        .stats-section { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-card { background: white; padding: 15px; border-radius: 20px; text-align: center; }
+        .stat-num { font-size: 20px; font-weight: 800; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fas fa-arrow-left" onclick="window.history.back()" style="position:absolute; left:20px; top:40px; cursor:pointer;"></i>
+        <h2 style="margin:0;">Salah Tracker</h2>
+        <p style="opacity:0.8; font-size:12px;" id="currentDate"></p>
+    </div>
+
+    <div class="hadith-card">
+        <p style="font-size:10px; font-weight:800; color:var(--primary); text-transform:uppercase; margin-bottom:5px;">Daily Hadith</p>
+        <p id="hadithText" style="font-size:13px; line-height:1.6; font-style:italic;">"The best of deeds is the prayer at its earliest time."</p>
+    </div>
+
+    <div class="stats-section">
+        <div class="stat-card">
+            <div class="stat-num" id="monthTotal">0</div>
+            <div style="font-size:10px; opacity:0.6;">MONTHLY PRAYERS</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="qazaTotal">0</div>
+            <div style="font-size:10px; opacity:0.6;">MONTHLY QAZA</div>
+        </div>
+    </div>
+
+    <div class="prayer-list" id="prayerContainer">
+        </div>
+
+    <script>
+        const prayers = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+        let prayerData = JSON.parse(localStorage.getItem('prayerHistory')) || {};
+        let today = new Date().toDateString();
+
+        function init() {
+            document.getElementById('currentDate').innerText = today;
+            renderPrayers();
+            updateStats();
+            showHadith();
+        }
+
+        function renderPrayers() {
+            const container = document.getElementById('prayerContainer');
+            container.innerHTML = "";
+            
+            prayers.forEach(p => {
+                const isDone = prayerData[today] && prayerData[today][p];
+                container.innerHTML += `
+                    <div class="prayer-item">
+                        <div class="prayer-info">
+                            <h3>${p}</h3>
+                            <span>Completed for today</span>
+                        </div>
+                        <div class="check-circle ${isDone ? 'done' : ''}" onclick="togglePrayer('${p}')">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function togglePrayer(name) {
+            if(!prayerData[today]) prayerData[today] = {};
+            prayerData[today][name] = !prayerData[today][name];
+            localStorage.setItem('prayerHistory', JSON.stringify(prayerData));
+            renderPrayers();
+            updateStats();
+        }
+
+        function updateStats() {
+            let monthDone = 0;
+            let monthTotalPossible = prayers.length * 30; // Approx
+            
+            // Logic to calculate monthly/yearly
+            Object.keys(prayerData).forEach(date => {
+                Object.values(prayerData[date]).forEach(status => {
+                    if(status) monthDone++;
+                });
+            });
+
+            document.getElementById('monthTotal').innerText = monthDone;
+            // Qaza calculation (Total Namaz in month - Namaz prayed)
+            let daysPassed = Object.keys(prayerData).length;
+            let qaza = (daysPassed * 5) - monthDone;
+            document.getElementById('qazaTotal').innerText = qaza > 0 ? qaza : 0;
+        }
+
+        function showHadith() {
+            const hadiths = [
+                "The prayer is a pillar of the religion.",
+                "Between a man and shirk/kufr is the abandonment of prayer.",
+                "Success comes to those who guard their prayers.",
+                "Namaz is the coolness of the eyes."
+            ];
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+            document.getElementById('hadithText').innerText = `"${hadiths[dayOfYear % hadiths.length]}"`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

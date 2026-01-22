@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings - Student OS Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; --border: #e5e7eb; }
+        body.dark-mode { --primary: #818cf8; --bg: #000000; --text: #f3f4f6; --card-bg: #1c1c1e; --border: #2d2d30; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; transition: 0.3s; }
+
+        .settings-header { background: var(--card-bg); padding: 15px 20px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .top-row { display: flex; align-items: center; gap: 15px; }
+        .page-title { font-size: 20px; font-weight: 700; }
+
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        /* PROFILE CARD */
+        .profile-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .profile-main { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .profile-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
+        .user-bio { font-size: 13px; opacity: 0.6; line-height: 1.5; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; font-style: italic; }
+
+        .section-title { font-size: 12px; font-weight: 700; color: #888; margin: 25px 0 8px 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .settings-group { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
+
+        .item { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .item:last-child { border-bottom: none; }
+        .item-text { flex-grow: 1; font-weight: 500; font-size: 15px; }
+
+        .icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; font-size: 14px; }
+        .bg-blue { background: #007aff; } .bg-teal { background: #30b0c7; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; } .bg-purple { background: #5856d6; }
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-box { background: var(--card-bg); padding: 25px; border-radius: 25px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; position: relative; }
+        
+        .btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-danger { background: #ef4444; color: white; }
+
+        .help-item { margin-bottom: 15px; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 15px; border-left: 4px solid var(--primary); }
+        .help-item h4 { color: var(--primary); margin-bottom: 5px; font-size: 15px; }
+        .help-item p { font-size: 13px; opacity: 0.8; line-height: 1.5; }
+
+        /* TOGGLE */
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9ea; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body>
+
+    <div class="settings-header">
+        <div class="top-row">
+            <i class="fas fa-arrow-left" onclick="window.location.href='dashboard.html'" style="cursor:pointer;"></i>
+            <span class="page-title" style="margin-left:15px;">Settings</span>
+        </div>
+        <i class="fas fa-sign-out-alt" style="color:#ef4444; font-size:20px; cursor:pointer;" onclick="logout()"></i>
+    </div>
+
+    <div class="container">
+        <div class="profile-card">
+            <div class="profile-main">
+                <img src="https://ui-avatars.com/api/?name=Student" id="profileImg" class="profile-img" onclick="document.getElementById('fileInput').click()">
+                <div style="flex-grow:1;">
+                    <h3 id="dispName">Noor Ullah</h3>
+                    <span style="font-size:11px; color:var(--primary); font-weight:800; text-transform:uppercase;">Scholar Rank</span>
+                </div>
+                <i class="fas fa-user-edit" style="color:var(--primary); font-size:20px; cursor:pointer;" onclick="editProfile()"></i>
+            </div>
+            <div class="user-bio" id="dispBio">Building my future with Student OS...</div>
+        </div>
+        <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="uploadImage(this)">
+
+        <div class="section-title">General</div>
+        <div class="settings-group">
+            <div class="item">
+                <div class="icon-box bg-purple"><i class="fas fa-moon"></i></div>
+                <div class="item-text">Dark Mode</div>
+                <label class="switch"><input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this)"><span class="slider"></span></label>
+            </div>
+            <div class="item" onclick="alert('Backup functionality will be connected to your Google Drive soon!')">
+                <div class="icon-box bg-blue"><i class="fas fa-cloud-upload-alt"></i></div>
+                <div class="item-text">Backup Data</div>
+            </div>
+        </div>
+
+        <div class="section-title">Support & OS Details</div>
+        <div class="settings-group">
+            <div class="item" onclick="openModal('help')">
+                <div class="icon-box bg-teal"><i class="fas fa-book-open"></i></div>
+                <div class="item-text">Help Center (Full Guide)</div>
+            </div>
+            <div class="item" onclick="openModal('report')">
+                <div class="icon-box bg-orange"><i class="fas fa-bug"></i></div>
+                <div class="item-text">Report a Bug</div>
+            </div>
+            <div class="item" onclick="openModal('about')">
+                <div class="icon-box bg-blue"><i class="fas fa-info-circle"></i></div>
+                <div class="item-text">About Version</div>
+                <div style="font-size:12px; color:#999;">v3.5.0 Pro</div>
+            </div>
+        </div>
+
+        <div class="section-title" style="color:#ef4444;">Danger Zone</div>
+        <div class="settings-group">
+            <div class="item" onclick="openModal('factory')">
+                <div class="icon-box bg-red"><i class="fas fa-trash-alt"></i></div>
+                <div class="item-text" style="color:#ef4444;">Factory Reset</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box" id="modalContent"></div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById('dispName').innerText = localStorage.getItem('studentName') || "Noor Ullah";
+            document.getElementById('dispBio').innerText = localStorage.getItem('studentBio') || "AI Student | Managing Habits";
+            const savedPic = localStorage.getItem('studentProfilePic');
+            if(savedPic) document.getElementById('profileImg').src = savedPic;
+            if(localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('darkModeToggle').checked = true; }
+        }
+
+        function editProfile() {
+            const currentName = document.getElementById('dispName').innerText;
+            const currentBio = document.getElementById('dispBio').innerText;
+            
+            const newName = prompt("Edit Your Name:", currentName);
+            if(newName) {
+                localStorage.setItem('studentName', newName);
+                document.getElementById('dispName').innerText = newName;
+            }
+            
+            const newBio = prompt("Edit Your Bio:", currentBio);
+            if(newBio) {
+                localStorage.setItem('studentBio', newBio);
+                document.getElementById('dispBio').innerText = newBio;
+            }
+        }
+
+        function openModal(type) {
+            const m = document.getElementById('modal');
+            const content = document.getElementById('modalContent');
+            m.style.display = 'flex';
+
+            if(type === 'help') {
+                content.innerHTML = `
+                    <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
+                    <div class="help-item"><h4>📅 My Routine</h4><p>Set your daily timetable. Completion of tasks earns you XP and Coins.</p></div>
+                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history to monitor your consistency.</p></div>
+                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study without distractions.</p></div>
+                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs and track consistency.</p></div>
+                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money with monthly logs.</p></div>
+                    <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
+            } else if(type === 'factory') {
+                content.innerHTML = `
+                    <h3 style="color:#ef4444; text-align:center;">⚠️ Factory Reset</h3>
+                    <p style="font-size:13px; margin:15px 0; text-align:center;">What would you like to clear?</p>
+                    <button class="btn btn-outline" onclick="resetData('vault')">Clear Uni Vault (Files) Only</button>
+                    <button class="btn btn-outline" onclick="resetData('routine')">Reset Routine & Habits Only</button>
+                    <button class="btn btn-danger" onclick="resetData('all')">DELETE ALL DATA & RESET OS</button>
+                    <button class="btn btn-outline" style="margin-top:20px;" onclick="closeModal()">Cancel</button>`;
+            } else if(type === 'report') {
+                content.innerHTML = `<h3>🪲 Report a Bug</h3><p style="font-size:13px; margin:10px 0;">Help us improve Student OS.</p>
+                    <textarea placeholder="Describe the issue..." style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid #ddd;"></textarea>
+                    <button class="btn btn-primary" onclick="alert('Report Sent!'); closeModal()">Submit Report</button>
+                    <button class="btn btn-outline" onclick="closeModal()">Back</button>`;
+            } else if(type === 'about') {
+                content.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="font-size:50px; margin-bottom:15px;">🎓</div>
+                        <h3>Student OS Pro</h3>
+                        <p style="opacity:0.6; font-size:14px;">Version 3.5.0 Build 2026</p>
+                        <p style="margin:20px 0; font-size:13px; line-height:1.6;">A complete productivity environment designed for high-performance students. Built by Noor Ullah.</p>
+                        <button class="btn btn-primary" onclick="closeModal()">Close</button>
+                    </div>`;
+            }
+        }
+
+        function resetData(target) {
+            if(target === 'all') {
+                if(confirm("Are you 100% sure? This will delete everything permanently!")) {
+                    localStorage.clear();
+                    window.location.href="index.html";
+                }
+            } else if(target === 'vault') {
+                localStorage.removeItem('StudentOS_Vault');
+                alert("Vault Storage Cleared!");
+            } else {
+                localStorage.removeItem('studentSchedule');
+                alert("Routine History Reset!");
+            }
+            closeModal();
+        }
+
+        function logout() {
+            if(confirm("Logout from Student OS?")) {
+                window.location.href="index.html";
+            }
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function toggleDarkMode(cb) { document.body.classList.toggle('dark-mode', cb.checked); localStorage.setItem('darkMode', cb.checked); }
+        
+        function uploadImage(input) {
+            const file = input.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    localStorage.setItem('studentProfilePic', e.target.result);
+                    document.getElementById('profileImg').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>

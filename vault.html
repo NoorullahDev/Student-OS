@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Uni Vault Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+
+        .page-header { background: white; padding: 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .page-title { font-size: 18px; font-weight: 700; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+
+        .folder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .folder-card { background: white; padding: 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .folder-card:active { transform: scale(0.95); background: #e0e7ff; border-color: var(--primary); }
+        .folder-icon { font-size: 40px; color: #f59e0b; margin-bottom: 10px; }
+        .folder-name { font-size: 14px; font-weight: 600; }
+
+        .file-card { background: white; padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); cursor: pointer; border-left: 4px solid transparent; }
+        .file-card:hover { border-left-color: var(--primary); }
+        .file-icon-box { width: 45px; height: 45px; background: #e0e7ff; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .file-info { flex-grow: 1; overflow: hidden; }
+        .file-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-action { background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+
+        .fab-add { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); cursor: pointer; z-index: 90; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 15px; outline: none; }
+        .btn-primary { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+        #filesView { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <i class="fas fa-arrow-left" style="font-size:20px; cursor:pointer;" onclick="goBack()"></i>
+        <div class="page-title" id="pageTitle">My Vault</div>
+    </div>
+
+    <div class="container">
+        <div id="foldersView">
+            <h4 style="margin-bottom:15px; color:#6b7280; font-size:12px; text-transform:uppercase;">Subjects</h4>
+            <div class="folder-grid" id="folderList"></div>
+            <div id="loadingMsg" style="text-align:center; color:#888; margin-top:20px;">Loading... 🔄</div>
+        </div>
+
+        <div id="filesView">
+            <h4 style="margin-bottom:15px; color:#6b7280; font-size:12px;" id="currentFolderName">FILES</h4>
+            <div id="fileList"></div>
+            <div id="emptyFileMsg" style="text-align:center; color:#ccc; margin-top:50px; display:none;">
+                <i class="fas fa-box-open" style="font-size:40px;"></i><br>Empty Folder
+            </div>
+        </div>
+    </div>
+
+    <div class="fab-add" onclick="handleFab()"><i class="fas fa-plus"></i></div>
+
+    <div class="modal-overlay" id="folderModal">
+        <div class="modal-box">
+            <h3>New Subject</h3>
+            <div class="input-group"><input type="text" id="newFolderName" placeholder="e.g. Physics"></div>
+            <button class="btn-primary" onclick="createFolder()">Create</button>
+            <button style="margin-top:10px; background:none; border:none; width:100%; color:#888;" onclick="closeModals()">Cancel</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="fileModal">
+        <div class="modal-box">
+            <h3>Name Your File</h3>
+            <div class="input-group"><input type="text" id="newFileName" placeholder="e.g. Lecture 1"></div>
+            <button id="btnSaveFile" class="btn-primary" onclick="saveFileDB()">Save File</button>
+            <button style="margin-top:10px; background:none; border:none; width:100%; color:#888;" onclick="closeModals()">Cancel</button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" style="display:none;" accept="image/*, application/pdf, video/*" onchange="prepareFile(this)">
+
+    <script>
+        // --- DB SETUP ---
+        let db;
+        let currentFolder = null;
+        let tempFileBlob = null;
+        let tempFileType = "";
+        
+        const request = indexedDB.open("StudentOS_Vault", 1);
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains("folders")) db.createObjectStore("folders", { keyPath: "name" });
+            if (!db.objectStoreNames.contains("files")) {
+                const fileStore = db.createObjectStore("files", { keyPath: "id", autoIncrement: true });
+                fileStore.createIndex("folder", "folder", { unique: false });
+            }
+        };
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            document.getElementById('loadingMsg').style.display = 'none';
+            loadFolders();
+        };
+
+        // --- FOLDER LOGIC ---
+        function loadFolders() {
+            const tx = db.transaction(["folders"], "readonly");
+            const req = tx.objectStore("folders").getAll();
+            req.onsuccess = function(e) {
+                const folders = e.target.result;
+                const list = document.getElementById('folderList');
+                list.innerHTML = "";
+                if(folders.length === 0) list.innerHTML = "<div style='color:#ccc; grid-column:span 2; text-align:center;'>No subjects.<br>Tap + to create.</div>";
+                folders.forEach(f => {
+                    list.innerHTML += `<div class="folder-card" onclick="openFolder('${f.name}')"><div class="folder-icon"><i class="fas fa-folder"></i></div><div class="folder-name">${f.name}</div></div>`;
+                });
+            };
+        }
+        function createFolder() {
+            const name = document.getElementById('newFolderName').value.trim();
+            if(!name) return;
+            const tx = db.transaction(["folders"], "readwrite");
+            tx.objectStore("folders").add({ name: name });
+            tx.oncomplete = function() { closeModals(); loadFolders(); };
+        }
+
+        // --- FILE LOGIC (UPDATED FOR VIDEO) ---
+        function openFolder(name) {
+            currentFolder = name;
+            document.getElementById('foldersView').style.display = 'none';
+            document.getElementById('filesView').style.display = 'block';
+            document.getElementById('pageTitle').innerText = name;
+            loadFiles(name);
+        }
+
+        function loadFiles(folderName) {
+            const tx = db.transaction(["files"], "readonly");
+            const index = tx.objectStore("files").index("folder");
+            const req = index.getAll(IDBKeyRange.only(folderName));
+
+            req.onsuccess = function(e) {
+                const files = e.target.result;
+                const list = document.getElementById('fileList');
+                list.innerHTML = "";
+                if(files.length === 0) { document.getElementById('emptyFileMsg').style.display = 'block'; } 
+                else {
+                    document.getElementById('emptyFileMsg').style.display = 'none';
+                    files.forEach(f => {
+                        let icon = "fa-file";
+                        if(f.type.includes("pdf")) icon = "fa-file-pdf";
+                        if(f.type.includes("image")) icon = "fa-image";
+                        if(f.type.includes("video")) icon = "fa-play-circle"; // Video Icon
+                        
+                        let actionText = "VIEW";
+                        if(f.type.includes("video")) actionText = "WATCH";
+
+                        list.innerHTML += `
+                            <div class="file-card" onclick="startStudyMode(${f.id}, '${f.name}')">
+                                <div class="file-icon-box"><i class="fas ${icon}"></i></div>
+                                <div class="file-info"><div class="file-name">${f.name}</div></div>
+                                <div class="file-action">${actionText} <i class="fas fa-play"></i></div>
+                                <i class="fas fa-trash" style="color:#ff6b6b; padding:10px;" onclick="deleteFile(event, ${f.id})"></i>
+                            </div>`;
+                    });
+                }
+            };
+        }
+
+        function startStudyMode(fileId, fileName) {
+            localStorage.setItem('studyFileId', fileId);
+            localStorage.setItem('studyFileName', fileName);
+            window.location.href = 'study.html';
+        }
+
+        // --- UPLOAD LOGIC ---
+        function prepareFile(input) {
+            const file = input.files[0];
+            if(file) {
+                tempFileBlob = file; tempFileType = file.type;
+                document.getElementById('fileModal').style.display = 'flex';
+                document.getElementById('newFileName').value = file.name;
+                document.getElementById('btnSaveFile').disabled = false;
+                document.getElementById('btnSaveFile').innerText = "Save File";
+            }
+            input.value = "";
+        }
+        function saveFileDB() {
+            const name = document.getElementById('newFileName').value.trim();
+            if(!name || !tempFileBlob) return;
+
+            // Show Saving for Large Files
+            document.getElementById('btnSaveFile').innerText = "Saving (Wait)...";
+            document.getElementById('btnSaveFile').disabled = true;
+
+            const tx = db.transaction(["files"], "readwrite");
+            tx.objectStore("files").add({ folder: currentFolder, name: name, type: tempFileType, blob: tempFileBlob, date: new Date().toLocaleDateString() });
+            tx.oncomplete = function() { closeModals(); loadFiles(currentFolder); };
+            tx.onerror = function() { alert("Error saving file. May be too large for this browser."); closeModals(); };
+        }
+
+        function deleteFile(e, id) {
+            e.stopPropagation();
+            if(confirm("Delete file?")) {
+                const tx = db.transaction(["files"], "readwrite");
+                tx.objectStore("files").delete(id);
+                tx.oncomplete = function() { loadFiles(currentFolder); };
+            }
+        }
+
+        function handleFab() { if(currentFolder) document.getElementById('fileInput').click(); else document.getElementById('folderModal').style.display='flex'; }
+        function goBack() { 
+            if(currentFolder) { currentFolder=null; document.getElementById('foldersView').style.display='block'; document.getElementById('filesView').style.display='none'; document.getElementById('pageTitle').innerText="My Vault"; } 
+            else window.location.href='dashboard.html'; 
+        }
+        function closeModals() { document.getElementById('folderModal').style.display='none'; document.getElementById('fileModal').style.display='none'; }
+    </script>
+</body>
+</html>

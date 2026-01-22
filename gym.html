@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Iron Log - Pro Split</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #ff5400; --dark: #1a1a2e; --bg: #f4f6f8; --text: #2b2d42; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+        .gym-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #000000 100%);
+            color: white; padding: 30px 20px 40px; border-radius: 0 0 30px 30px;
+            position: sticky; top: 0; z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 24px; font-weight: 800; font-style: italic; color: var(--primary); }
+        
+        .edit-btn { background: rgba(255, 84, 0, 0.2); color: var(--primary); padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--primary); }
+
+        .plan-scroller { margin-top: -30px; padding: 10px 20px; overflow-x: auto; display: flex; gap: 15px; -webkit-overflow-scrolling: touch; }
+        .plan-scroller::-webkit-scrollbar { display: none; }
+
+        .plan-card {
+            background: white; min-width: 140px; padding: 15px; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; cursor: pointer;
+            transition: 0.3s; border: 2px solid transparent;
+        }
+        .plan-card.active { border-color: var(--primary); transform: translateY(-5px); background: #fff3e0; }
+        .muscle-name { font-size: 13px; font-weight: 700; color: #2b2d42; white-space: normal; line-height: 1.2; }
+
+        .workout-container { padding: 25px 20px; max-width: 800px; margin: 0 auto; }
+        .heading-text { font-size: 20px; font-weight: 800; text-transform: uppercase; color: var(--dark); }
+
+        .exercise-card { background: white; border-radius: 18px; padding: 20px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border-left: 5px solid var(--primary); }
+        .ex-name { font-weight: 700; font-size: 16px; width: 90%; border: none; outline: none; background: transparent; }
+        
+        .set-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+        .input-box { flex: 1; background: #f9f9f9; border: 1px solid #eee; padding: 10px; border-radius: 8px; font-size: 14px; text-align: center; }
+        .check-btn { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ccc; }
+        .check-btn.completed { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* MODAL STYLE */
+        #scheduleModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: white; padding: 25px; border-radius: 24px; width: 95%; max-width: 450px; max-height: 85vh; overflow-y: auto; }
+        .day-config-row { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .combo-selects { display: flex; gap: 8px; margin-top: 8px; }
+        .m-select { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; }
+
+        .btn-save { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: 700; margin-top: 20px; cursor: pointer; }
+        .fab-add { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(255, 84, 0, 0.4); z-index: 90; }
+    </style>
+</head>
+<body>
+
+    <div class="gym-header">
+        <div class="top-bar">
+            <i class="fas fa-arrow-left" onclick="window.location.href='dashboard.html'"></i>
+            <div class="page-title">IRON LOG PRO</div>
+            <div class="edit-btn" onclick="openModal()"><i class="fas fa-layer-group"></i> Split</div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-box"><div class="stat-val" id="totalWorkouts">0</div><div class="stat-label">Sessions</div></div>
+            <div class="stat-box"><div class="stat-val">Combo</div><div class="stat-label">Training</div></div>
+            <div class="stat-box"><div class="stat-val">🔥 <span id="gymStreak">0</span></div><div class="stat-label">Streak</div></div>
+        </div>
+    </div>
+
+    <div class="plan-scroller" id="planContainer"></div>
+
+    <div class="workout-container">
+        <div class="section-heading">
+            <div class="heading-text" id="workoutTitle">Pick a Muscle</div>
+        </div>
+        <div id="exerciseList"></div>
+    </div>
+
+    <div class="fab-add" onclick="addExerciseCard()"><i class="fas fa-plus"></i></div>
+
+    <div id="scheduleModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom:15px;">Setup Weekly Split <i class="fas fa-times" onclick="closeModal()" style="float:right; opacity:0.5;"></i></h3>
+            <div id="daysInputs"></div>
+            <button class="btn-save" onclick="saveSchedule()">Update My Plan</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Muscle Options (Added Abs & Cardio)
+        const muscles = [
+            { name: "None", icon: "➖" },
+            { name: "Chest", icon: "🦍" },
+            { name: "Back", icon: "🐍" },
+            { name: "Legs", icon: "🦖" },
+            { name: "Shoulder", icon: "🐂" },
+            { name: "Bicep", icon: "💪" },
+            { name: "Tricep", icon: "⚡" },
+            { name: "Abs", icon: "🧱" },
+            { name: "Cardio", icon: "🏃" },
+            { name: "Rest", icon: "🛌" }
+        ];
+
+        // 2. Initial Plan
+        let weeklyPlan = JSON.parse(localStorage.getItem('gymPlan')) || [
+            { day: "Mon", m1: "Chest", m2: "Tricep" },
+            { day: "Tue", m1: "Back", m2: "Bicep" },
+            { day: "Wed", m1: "Rest", m2: "None" },
+            { day: "Thu", m1: "Legs", m2: "Abs" },
+            { day: "Fri", m1: "Shoulder", m2: "None" },
+            { day: "Sat", m1: "Cardio", m2: "Abs" },
+            { day: "Sun", m1: "Rest", m2: "None" }
+        ];
+
+        function renderPlan() {
+            const container = document.getElementById('planContainer');
+            container.innerHTML = "";
+            weeklyPlan.forEach((item, index) => {
+                const icon1 = muscles.find(m => m.name === item.m1)?.icon || "❓";
+                const isCombo = item.m2 !== "None" && item.m2 !== "Rest";
+                const displayName = isCombo ? `${item.m1} + ${item.m2}` : item.m1;
+
+                container.innerHTML += `
+                    <div class="plan-card" onclick="loadWorkout(${index}, this)">
+                        <div class="day-label">${item.day}</div>
+                        <div style="font-size:24px; margin:5px 0;">${icon1}</div>
+                        <div class="muscle-name">${displayName}</div>
+                    </div>`;
+            });
+        }
+
+        function loadWorkout(index, el) {
+            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            
+            const p = weeklyPlan[index];
+            const title = p.m2 !== "None" ? `${p.m1} & ${p.m2}` : p.m1;
+            document.getElementById('workoutTitle').innerText = title + " Session";
+            
+            const list = document.getElementById('exerciseList');
+            list.innerHTML = "";
+            
+            if(p.m1 === "Rest") {
+                list.innerHTML = `<div style="text-align:center; padding:50px; opacity:0.5;"><i class="fas fa-bed" style="font-size:40px;"></i><p>Recovery is part of the process.</p></div>`;
+            } else {
+                addExerciseCard(`Main ${p.m1} Movement`);
+                if(p.m2 !== "None") addExerciseCard(`${p.m2} Isolation`);
+            }
+        }
+
+        function addExerciseCard(name = "Exercise Name") {
+            const html = `
+                <div class="exercise-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <input class="ex-name" placeholder="${name}">
+                        <i class="fas fa-trash" style="color:#eee;" onclick="this.parentElement.parentElement.remove()"></i>
+                    </div>
+                    <div class="set-row">
+                        <span style="font-size:10px; font-weight:800; color:#ddd;">S1</span>
+                        <input type="number" class="input-box" placeholder="kg">
+                        <input type="number" class="input-box" placeholder="reps">
+                        <div class="check-btn" onclick="this.classList.toggle('completed')"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>`;
+            document.getElementById('exerciseList').insertAdjacentHTML('beforeend', html);
+        }
+
+        // Modal Logic
+        function openModal() {
+            const div = document.getElementById('daysInputs');
+            div.innerHTML = "";
+            weeklyPlan.forEach((item, index) => {
+                let m1Options = "", m2Options = "";
+                muscles.forEach(m => {
+                    m1Options += `<option value="${m.name}" ${m.name===item.m1?'selected':''}>${m.icon} ${m.name}</option>`;
+                    m2Options += `<option value="${m.name}" ${m.name===item.m2?'selected':''}>${m.icon} ${m.name}</option>`;
+                });
+
+                div.innerHTML += `
+                    <div class="day-config-row">
+                        <div style="font-weight:800; font-size:14px; color:var(--primary);">${item.day}</div>
+                        <div class="combo-selects">
+                            <select id="m1-${index}" class="m-select">${m1Options}</select>
+                            <span style="align-self:center; font-weight:bold;">+</span>
+                            <select id="m2-${index}" class="m-select">${m2Options}</select>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('scheduleModal').style.display = "flex";
+        }
+
+        function closeModal() { document.getElementById('scheduleModal').style.display = "none"; }
+
+        function saveSchedule() {
+            weeklyPlan.forEach((item, index) => {
+                item.m1 = document.getElementById(`m1-${index}`).value;
+                item.m2 = document.getElementById(`m2-${index}`).value;
+            });
+            localStorage.setItem('gymPlan', JSON.stringify(weeklyPlan));
+            renderPlan();
+            closeModal();
+        }
+
+        window.onload = () => {
+            renderPlan();
+            document.getElementById('gymStreak').innerText = localStorage.getItem('streakCount') || 0;
+        };
+    </script>
+</body>
+</html>

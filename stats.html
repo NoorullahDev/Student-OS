@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Analytics & Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #4361ee; --secondary: #3f37c9; --bg: #f4f6f8; --text: #2b2d42; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 90px; }
+
+        /* HEADER */
+        .stats-header {
+            background: white; padding: 20px; border-radius: 0 0 30px 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50;
+        }
+        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 700; }
+        
+        /* SCORE CARD (Total XP) */
+        .score-card {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            color: white; padding: 25px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3); position: relative; overflow: hidden;
+        }
+        .score-val { font-size: 36px; font-weight: 800; }
+        .score-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+        .level-badge {
+            background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; display: inline-block; margin-top: 10px;
+        }
+
+        /* CONTAINER */
+        .container { padding: 25px 20px; max-width: 800px; margin: 0 auto; }
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 15px; color: #333; }
+
+        /* WEEKLY GRAPH (CSS Bar Chart) */
+        .chart-box {
+            background: white; padding: 20px; border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03); margin-bottom: 30px;
+        }
+        .chart-bars {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            height: 150px; padding-bottom: 10px; border-bottom: 1px solid #eee;
+        }
+        .bar-col { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 100%; }
+        .bar {
+            width: 8px; background: #e0e7ff; border-radius: 10px;
+            transition: 0.5s; position: relative;
+        }
+        .bar.active { background: var(--primary); } /* High Performance Color */
+        .day-label { font-size: 10px; color: #888; font-weight: 600; }
+
+        /* SUBJECT PROGRESS BARS */
+        .subject-row { margin-bottom: 15px; }
+        .sub-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+        .progress-track { width: 100%; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; }
+
+        /* REWARDS SHOP GRID */
+        .rewards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .reward-card {
+            background: white; padding: 20px; border-radius: 20px; text-align: center;
+            border: 2px solid transparent; cursor: pointer; transition: 0.3s;
+        }
+        .reward-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .reward-icon { font-size: 30px; margin-bottom: 10px; }
+        .reward-cost {
+            font-size: 12px; font-weight: 700; color: var(--primary);
+            background: #eef2ff; padding: 4px 10px; border-radius: 10px; display: inline-block;
+        }
+        
+        /* Locked State */
+        .reward-card.locked { opacity: 0.6; filter: grayscale(1); cursor: not-allowed; }
+
+    </style>
+</head>
+<body>
+
+    <div class="stats-header">
+        <div class="top-row">
+            <i class="fas fa-arrow-left" style="font-size:20px; cursor:pointer;" onclick="window.location.href='dashboard.html'"></i>
+            <div class="page-title">Analytics</div>
+            <i class="fas fa-share-alt" style="color:#888;"></i>
+        </div>
+
+        <div class="score-card">
+            <div class="score-val" id="totalXP">850</div>
+            <div class="score-label">Total XP Earned</div>
+            <div class="level-badge">LEVEL 5: DISCIPLINED</div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="section-title">Weekly Focus</div>
+        <div class="chart-box">
+            <div class="chart-bars">
+                <div class="bar-col"><div class="bar" style="height: 40%;"></div><span class="day-label">M</span></div>
+                <div class="bar-col"><div class="bar active" style="height: 80%;"></div><span class="day-label">T</span></div>
+                <div class="bar-col"><div class="bar" style="height: 30%;"></div><span class="day-label">W</span></div>
+                <div class="bar-col"><div class="bar active" style="height: 90%;"></div><span class="day-label">T</span></div>
+                <div class="bar-col"><div class="bar" style="height: 50%;"></div><span class="day-label">F</span></div>
+                <div class="bar-col"><div class="bar" style="height: 20%;"></div><span class="day-label">S</span></div>
+                <div class="bar-col"><div class="bar" style="height: 10%;"></div><span class="day-label">S</span></div>
+            </div>
+            <p style="text-align:center; font-size:12px; color:#888; margin-top:10px;">
+                You were most productive on <b>Thursday</b> 🔥
+            </p>
+        </div>
+
+        <div class="section-title">Subject Progress</div>
+        <div class="chart-box">
+            
+            <div class="subject-row">
+                <div class="sub-header"><span>Artificial Intelligence</span><span>75%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:75%; background:#4361ee;"></div></div>
+            </div>
+
+            <div class="subject-row">
+                <div class="sub-header"><span>Gym Consistency</span><span>90%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:90%; background:#ff5400;"></div></div>
+            </div>
+
+            <div class="subject-row">
+                <div class="sub-header"><span>Calculus (Needs Work)</span><span>40%</span></div>
+                <div class="progress-track"><div class="progress-fill" style="width:40%; background:#e53935;"></div></div>
+            </div>
+
+        </div>
+
+        <div class="section-title">Redeem XP (Rewards) 🎁</div>
+        <div class="rewards-grid">
+            
+            <div class="reward-card" onclick="claimReward(500, 'Movie Night 🎬')">
+                <div class="reward-icon">🎬</div>
+                <h4>Movie Night</h4>
+                <div class="reward-cost">500 XP</div>
+            </div>
+
+            <div class="reward-card" onclick="claimReward(1000, 'Cheat Meal 🍕')">
+                <div class="reward-icon">🍕</div>
+                <h4>Cheat Meal</h4>
+                <div class="reward-cost">1000 XP</div>
+            </div>
+
+            <div class="reward-card locked" onclick="alert('Level 10 Required!')">
+                <div class="reward-icon">🎨</div>
+                <h4>Dark Theme</h4>
+                <div class="reward-cost">2000 XP</div>
+            </div>
+
+            <div class="reward-card locked">
+                <div class="reward-icon">🏆</div>
+                <h4>Pro Badge</h4>
+                <div class="reward-cost">5000 XP</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function claimReward(cost, itemName) {
+            let currentXP = parseInt(document.getElementById('totalXP').innerText);
+
+            if(currentXP >= cost) {
+                if(confirm("Spend " + cost + " XP for " + itemName + "?")) {
+                    currentXP = currentXP - cost;
+                    document.getElementById('totalXP').innerText = currentXP;
+                    alert("🎉 Reward Unlocked! Enjoy your " + itemName);
+                }
+            } else {
+                alert("❌ Not enough XP! Go study more.");
+            }
+        }
+    </script>
+
+</body>
+</html>
