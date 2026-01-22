@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Settings - Student OS Pro</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
     <style>
         :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; --border: #e5e7eb; }
         body.dark-mode { --primary: #818cf8; --bg: #000000; --text: #f3f4f6; --card-bg: #1c1c1e; --border: #2d2d30; }
@@ -20,7 +25,6 @@
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
 
-        /* PROFILE CARD */
         .profile-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 25px; }
         .profile-main { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .profile-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
@@ -36,7 +40,6 @@
         .icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; font-size: 14px; }
         .bg-blue { background: #007aff; } .bg-teal { background: #30b0c7; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; } .bg-purple { background: #5856d6; }
 
-        /* MODALS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { background: var(--card-bg); padding: 25px; border-radius: 25px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; position: relative; }
         
@@ -49,13 +52,14 @@
         .help-item h4 { color: var(--primary); margin-bottom: 5px; font-size: 15px; }
         .help-item p { font-size: 13px; opacity: 0.8; line-height: 1.5; }
 
-        /* TOGGLE */
         .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9ea; transition: .3s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
+
+        .inp-field { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; outline: none; background: transparent; color: var(--text); }
     </style>
 </head>
 <body>
@@ -126,6 +130,19 @@
     </div>
 
     <script>
+        // --- FIREBASE CONFIG (Required for Firestore) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
+            authDomain: "student-os-82fd5.firebaseapp.com",
+            projectId: "student-os-82fd5",
+            storageBucket: "student-os-82fd5.firebasestorage.app",
+            messagingSenderId: "420206340906",
+            appId: "1:420206340906:web:395cfeb9c487c345e18c53",
+            measurementId: "G-JP2D156YWH"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         window.onload = function() {
             document.getElementById('dispName').innerText = localStorage.getItem('studentName') || "Noor Ullah";
             document.getElementById('dispBio').innerText = localStorage.getItem('studentBio') || "AI Student | Managing Habits";
@@ -134,21 +151,38 @@
             if(localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('darkModeToggle').checked = true; }
         }
 
+        async function sendReport() {
+            const sub = document.getElementById('bugSub').value;
+            const desc = document.getElementById('bugDesc').value;
+
+            if(!sub || !desc) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            try {
+                await db.collection("reports").add({
+                    subject: sub,
+                    description: desc,
+                    user: localStorage.getItem('studentName') || "Anonymous",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                alert("Report sent successfully! Noor Ullah will check it soon.");
+                closeModals();
+            } catch (error) {
+                console.error("Error sending report: ", error);
+                alert("Failed to send report. Check your connection.");
+            }
+        }
+
         function editProfile() {
             const currentName = document.getElementById('dispName').innerText;
             const currentBio = document.getElementById('dispBio').innerText;
-            
             const newName = prompt("Edit Your Name:", currentName);
-            if(newName) {
-                localStorage.setItem('studentName', newName);
-                document.getElementById('dispName').innerText = newName;
-            }
-            
+            if(newName) { localStorage.setItem('studentName', newName); document.getElementById('dispName').innerText = newName; }
             const newBio = prompt("Edit Your Bio:", currentBio);
-            if(newBio) {
-                localStorage.setItem('studentBio', newBio);
-                document.getElementById('dispBio').innerText = newBio;
-            }
+            if(newBio) { localStorage.setItem('studentBio', newBio); document.getElementById('dispBio').innerText = newBio; }
         }
 
         function openModal(type) {
@@ -157,72 +191,30 @@
             m.style.display = 'flex';
 
             if(type === 'help') {
-                content.innerHTML = `
-                    <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
-                    <div class="help-item"><h4>📅 My Routine</h4><p>Set your daily timetable. Completion of tasks earns you XP and Coins.</p></div>
-                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history to monitor your consistency.</p></div>
-                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study without distractions.</p></div>
-                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs and track consistency.</p></div>
-                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money with monthly logs.</p></div>
-                    <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
+                content.innerHTML = `<h3>📚 OS Guide</h3><div class="help-item"><h4>📅 My Routine</h4><p>Set daily timetable. Earn XP/Coins.</p></div><div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers.</p></div><button class="btn btn-primary" onclick="closeModal()">Close</button>`;
             } else if(type === 'factory') {
-                content.innerHTML = `
-                    <h3 style="color:#ef4444; text-align:center;">⚠️ Factory Reset</h3>
-                    <p style="font-size:13px; margin:15px 0; text-align:center;">What would you like to clear?</p>
-                    <button class="btn btn-outline" onclick="resetData('vault')">Clear Uni Vault (Files) Only</button>
-                    <button class="btn btn-outline" onclick="resetData('routine')">Reset Routine & Habits Only</button>
-                    <button class="btn btn-danger" onclick="resetData('all')">DELETE ALL DATA & RESET OS</button>
-                    <button class="btn btn-outline" style="margin-top:20px;" onclick="closeModal()">Cancel</button>`;
+                content.innerHTML = `<h3>⚠️ Factory Reset</h3><button class="btn btn-outline" onclick="resetData('vault')">Clear Vault Only</button><button class="btn btn-danger" onclick="resetData('all')">DELETE EVERYTHING</button><button class="btn btn-outline" style="margin-top:20px;" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'report') {
-                content.innerHTML = `<h3>🪲 Report a Bug</h3><p style="font-size:13px; margin:10px 0;">Help us improve Student OS.</p>
-                    <textarea placeholder="Describe the issue..." style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid #ddd;"></textarea>
-                    <button class="btn btn-primary" onclick="alert('Report Sent!'); closeModal()">Submit Report</button>
-                    <button class="btn btn-outline" onclick="closeModal()">Back</button>`;
+                content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Describe the issue..."></textarea><button class="btn btn-primary" onclick="sendReport()">Submit Report</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
             } else if(type === 'about') {
-                content.innerHTML = `
-                    <div style="text-align:center;">
-                        <div style="font-size:50px; margin-bottom:15px;">🎓</div>
-                        <h3>Student OS Pro</h3>
-                        <p style="opacity:0.6; font-size:14px;">Version 3.5.0 Build 2026</p>
-                        <p style="margin:20px 0; font-size:13px; line-height:1.6;">A complete productivity environment designed for high-performance students. Built by Noor Ullah.</p>
-                        <button class="btn btn-primary" onclick="closeModal()">Close</button>
-                    </div>`;
+                content.innerHTML = `<div style="text-align:center;"><div style="font-size:50px;">🎓</div><h3>Student OS Pro</h3><p>Version 3.5.0 Build 2026</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
             }
         }
 
         function resetData(target) {
-            if(target === 'all') {
-                if(confirm("Are you 100% sure? This will delete everything permanently!")) {
-                    localStorage.clear();
-                    window.location.href="index.html";
-                }
-            } else if(target === 'vault') {
-                localStorage.removeItem('StudentOS_Vault');
-                alert("Vault Storage Cleared!");
-            } else {
-                localStorage.removeItem('studentSchedule');
-                alert("Routine History Reset!");
-            }
-            closeModal();
+            if(target === 'all') { if(confirm("Are you 100% sure?")) { localStorage.clear(); window.location.href="index.html"; } }
+            else if(target === 'vault') { localStorage.removeItem('StudentOS_Vault'); alert("Vault Cleared!"); }
+            closeModals();
         }
 
-        function logout() {
-            if(confirm("Logout from Student OS?")) {
-                window.location.href="index.html";
-            }
-        }
-
+        function logout() { if(confirm("Logout from Student OS?")) window.location.href="index.html"; }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         function toggleDarkMode(cb) { document.body.classList.toggle('dark-mode', cb.checked); localStorage.setItem('darkMode', cb.checked); }
-        
         function uploadImage(input) {
             const file = input.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    localStorage.setItem('studentProfilePic', e.target.result);
-                    document.getElementById('profileImg').src = e.target.result;
-                };
+                reader.onload = (e) => { localStorage.setItem('studentProfilePic', e.target.result); document.getElementById('profileImg').src = e.target.result; };
                 reader.readAsDataURL(file);
             }
         }
