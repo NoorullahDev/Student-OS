@@ -115,28 +115,25 @@
     <div class="modal-overlay" id="modal"><div class="modal-box" id="modalContent"></div></div>
 
     <script>
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
             authDomain: "student-os-82fd5.firebaseapp.com",
             projectId: "student-os-82fd5",
             storageBucket: "student-os-82fd5.firebasestorage.app",
             messagingSenderId: "420206340906",
-            appId: "1:420206340906:web:395cfeb9c487c345e18c53",
-            measurementId: "G-JP2D156YWH"
+            appId: "1:420206340906:web:395cfeb9c487c345e18c53"
         };
         
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            // ✅ Session saved rahega
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
         const db = firebase.firestore();
 
-        // ✅ Security check: Baghair login ke settings band
+        // Security check: Redirect if not logged in
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) {
-                window.location.replace("index.html");
-            }
+            if (!user) { window.location.replace("index.html"); }
         });
 
         window.onload = function() {
@@ -151,60 +148,34 @@
             const sub = document.getElementById('bugSub').value;
             const desc = document.getElementById('bugDesc').value;
             if(!sub || !desc) return alert("Please fill all fields!");
-
             try {
                 await db.collection("reports").add({
-                    subject: sub,
-                    description: desc,
+                    subject: sub, description: desc,
                     user: localStorage.getItem('studentName') || "Anonymous",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 alert("Report sent successfully! NoorullahDev will check it soon.");
                 closeModal();
-            } catch (error) {
-                alert("Failed to send report. Check your connection.");
-            }
+            } catch (error) { alert("Failed to send report. Check your connection."); }
         }
 
         function openModal(type) {
             const m = document.getElementById('modal');
             const content = document.getElementById('modalContent');
             m.style.display = 'flex';
-
             if(type === 'help') {
-                content.innerHTML = `
-                    <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
-                    <div class="help-item"><h4>📅 My Routine</h4><p>Set your daily timetable. Completion of tasks earns you XP and Coins.</p></div>
-                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history.</p></div>
-                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study.</p></div>
-                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs.</p></div>
-                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money.</p></div>
-                    <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
+                content.innerHTML = `<h3>📚 OS Guide</h3><div class="help-item"><h4>📅 Routine</h4><p>Set daily tasks to earn XP.</p></div><div class="help-item"><h4>📂 Vault</h4><p>Secure 100GB Local Storage.</p></div><button class="btn btn-primary" onclick="closeModal()">Close</button>`;
             } else if(type === 'report') {
                 content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Details"></textarea><button class="btn btn-primary" onclick="sendReport()">Submit</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
             } else if(type === 'factory') {
-                content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE ALL DATA</button><button class="btn btn-outline" style="margin-top:10px;" onclick="closeModal()">Cancel</button>`;
+                content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE DATA</button><button class="btn btn-outline" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'about') {
-                content.innerHTML = `
-                    <div style="text-align:center;">
-                        <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 25px;">
-                            <i class="fas fa-cube"></i>
-                        </div>
-                        <h3 style="margin-bottom:5px;">Student OS Pro</h3>
-                        <p style="font-size: 11px; color: var(--primary); font-weight: 800; text-transform:uppercase;">Build v3.5.0-PRO-2026</p>
-                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
-                        <p style="font-size: 13px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;">
-                            Student OS is a next-generation productivity environment developed by <strong>Noor Ullah</strong>. 
-                            Built with Cloud Sync, PWA support, and 100GB Local Database technology to help students master their daily habits and academic growth.
-                        </p>
-                        <div style="font-size: 11px; opacity: 0.5;">© 2026 NoorullahDev. All rights reserved.</div>
-                        <button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close Details</button>
-                    </div>`;
+                content.innerHTML = `<div style="text-align:center;"><h3>Student OS Pro</h3><p>Build v3.5.0-PRO-2026</p><hr style="margin:15px 0; opacity:0.2;"><p style="font-size:13px; line-height:1.6;">Next-gen productivity environment by <b>Noor Ullah</b>. Optimized for academic growth and habit mastery.</p><button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close</button></div>`;
             }
         }
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
-        function logout() { if(confirm("Logout?")) { firebase.auth().signOut(); window.location.href="index.html"; } }
+        function logout() { if(confirm("Logout?")) { firebase.auth().signOut().then(() => { window.location.replace("index.html"); }); } }
         function toggleDarkMode(cb) { document.body.classList.toggle('dark-mode', cb.checked); localStorage.setItem('darkMode', cb.checked); }
         function editProfile() {
             const n = prompt("Edit Name:", document.getElementById('dispName').innerText);
