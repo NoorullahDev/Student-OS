@@ -91,7 +91,13 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE CONFIG (REQUIRED) ---
+        // ✅ [DEDICATED FAST CHECK]
+        // Ye line Firebase se pehle browser ki memory dekhegi
+        if (localStorage.getItem('user_persistent_login') === 'true') {
+            window.location.replace("dashboard.html");
+        }
+
+        // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
             authDomain: "student-os-82fd5.firebaseapp.com",
@@ -102,14 +108,16 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-        // ✅ 2. AUTO-LOGIN GUARD: Button dikhne se pehle check
+        // ✅ 2. AUTO-LOGIN GUARD: Background se aane par foran check karega
         firebase.auth().onAuthStateChanged((user) => {
             const loader = document.getElementById('auth-loading');
             if (user) {
-                // Agar session hai, to seedha Dashboard
+                // Persistent memory set karein
+                localStorage.setItem('user_persistent_login', 'true');
                 window.location.replace("dashboard.html");
             } else {
-                // Sirf tab loader hatao jab logout confirm ho
+                // Agar user logged out hai toh button dikhayein
+                localStorage.removeItem('user_persistent_login');
                 loader.style.display = "none";
             }
         });
@@ -124,7 +132,10 @@
                 .then(() => {
                     return firebase.auth().signInWithPopup(provider);
                 })
-                .then(() => { window.location.href = "dashboard.html"; })
+                .then(() => { 
+                    localStorage.setItem('user_persistent_login', 'true');
+                    window.location.href = "dashboard.html"; 
+                })
                 .catch((e) => { 
                     alert("Error: " + e.message); 
                     document.getElementById('auth-loading').style.display = "none"; 
