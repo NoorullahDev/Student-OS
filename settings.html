@@ -15,50 +15,38 @@
     <style>
         :root { --primary: #6366f1; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; --border: #e5e7eb; }
         body.dark-mode { --primary: #818cf8; --bg: #000000; --text: #f3f4f6; --card-bg: #1c1c1e; --border: #2d2d30; }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); color: var(--text); padding-bottom: 50px; transition: 0.3s; }
-
         .settings-header { background: var(--card-bg); padding: 15px 20px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .top-row { display: flex; align-items: center; gap: 15px; }
         .page-title { font-size: 20px; font-weight: 700; }
-
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-
         .profile-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 25px; }
         .profile-main { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .profile-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; }
         .user-bio { font-size: 13px; opacity: 0.6; line-height: 1.5; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; font-style: italic; }
-
         .section-title { font-size: 12px; font-weight: 700; color: #888; margin: 25px 0 8px 15px; text-transform: uppercase; letter-spacing: 0.5px; }
         .settings-group { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
-
         .item { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer; }
         .item:last-child { border-bottom: none; }
         .item-text { flex-grow: 1; font-weight: 500; font-size: 15px; }
-
         .icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; font-size: 14px; }
         .bg-blue { background: #007aff; } .bg-teal { background: #30b0c7; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; } .bg-purple { background: #5856d6; }
-
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { background: var(--card-bg); padding: 25px; border-radius: 25px; width: 90%; max-width: 420px; max-height: 85vh; overflow-y: auto; position: relative; }
-        
         .btn { width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; margin-top: 10px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
         .btn-danger { background: #ef4444; color: white; }
-
         .help-item { margin-bottom: 15px; padding: 15px; background: rgba(0,0,0,0.02); border-radius: 15px; border-left: 4px solid var(--primary); }
         .help-item h4 { color: var(--primary); margin-bottom: 5px; font-size: 15px; }
         .help-item p { font-size: 13px; opacity: 0.8; line-height: 1.5; }
-
         .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e9e9ea; transition: .3s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
-
         .inp-field { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; outline: none; background: transparent; color: var(--text); }
     </style>
 </head>
@@ -125,9 +113,7 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal">
-        <div class="modal-box" id="modalContent"></div>
-    </div>
+    <div class="modal-overlay" id="modal"><div class="modal-box" id="modalContent"></div></div>
 
     <script>
         const firebaseConfig = {
@@ -142,7 +128,7 @@
         
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            // ✅ Fix 1: Auth persistence taake baar baar login na mangay
+            // ✅ Fix 1: Login persistent rahega
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
         const db = firebase.firestore();
@@ -158,11 +144,7 @@
         async function sendReport() {
             const sub = document.getElementById('bugSub').value;
             const desc = document.getElementById('bugDesc').value;
-
-            if(!sub || !desc) {
-                alert("Please fill all fields!");
-                return;
-            }
+            if(!sub || !desc) return alert("Please fill all fields!");
 
             try {
                 await db.collection("reports").add({
@@ -171,23 +153,12 @@
                     user: localStorage.getItem('studentName') || "Anonymous",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                // ✅ Fix 2: Changed NoorUllahDev name and fixed alert flow
+                // ✅ Fix 2: Message with NoorullahDev
                 alert("Report sent successfully! NoorullahDev will check it soon.");
                 closeModal();
             } catch (error) {
-                console.error("Error sending report: ", error);
                 alert("Failed to send report. Check your connection.");
             }
-        }
-
-        function editProfile() {
-            const currentName = document.getElementById('dispName').innerText;
-            const currentBio = document.getElementById('dispBio').innerText;
-            const newName = prompt("Edit Your Name:", currentName);
-            if(newName) { localStorage.setItem('studentName', newName); document.getElementById('dispName').innerText = newName; }
-            const newBio = prompt("Edit Your Bio:", currentBio);
-            if(newBio) { localStorage.setItem('studentBio', newBio); document.getElementById('dispBio').innerText = newBio; }
         }
 
         function openModal(type) {
@@ -199,29 +170,27 @@
                 content.innerHTML = `
                     <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
                     <div class="help-item"><h4>📅 My Routine</h4><p>Set your daily timetable. Completion of tasks earns you XP and Coins.</p></div>
-                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history to monitor your consistency.</p></div>
-                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study without distractions.</p></div>
-                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs and track consistency.</p></div>
-                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money with monthly logs.</p></div>
+                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history.</p></div>
+                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study.</p></div>
+                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs.</p></div>
+                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money.</p></div>
                     <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
-            } else if(type === 'factory') {
-                content.innerHTML = `<h3>⚠️ Factory Reset</h3><button class="btn btn-outline" onclick="resetData('vault')">Clear Vault Only</button><button class="btn btn-danger" onclick="resetData('all')">DELETE EVERYTHING</button><button class="btn btn-outline" style="margin-top:20px;" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'report') {
-                content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Describe the issue..."></textarea><button class="btn btn-primary" onclick="sendReport()">Submit Report</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
-            } else if(type === 'about') {
-                content.innerHTML = `<div style="text-align:center;"><div style="font-size:50px;">🎓</div><h3>Student OS Pro</h3><p>Version 3.5.0 Build 2026</p><p style="margin:20px 0; font-size:13px; line-height:1.6;">A complete productivity environment designed for high-performance students. Built by Noor Ullah.</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
+                content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Details"></textarea><button class="btn btn-primary" onclick="sendReport()">Submit</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
+            } else if(type === 'factory') {
+                content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE ALL DATA</button><button class="btn btn-outline" style="margin-top:10px;" onclick="closeModal()">Cancel</button>`;
+            } else {
+                content.innerHTML = `<div style="text-align:center;"><h3>Student OS Pro</h3><p>Version 3.5.0. Built by Noor Ullah.</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
             }
         }
 
-        function resetData(target) {
-            if(target === 'all') { if(confirm("Are you 100% sure?")) { localStorage.clear(); window.location.href="index.html"; } }
-            else if(target === 'vault') { localStorage.removeItem('StudentOS_Vault'); alert("Vault Cleared!"); }
-            closeModal();
-        }
-
-        function logout() { if(confirm("Logout from Student OS?")) { firebase.auth().signOut(); window.location.href="index.html"; } }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function logout() { if(confirm("Logout?")) { firebase.auth().signOut(); window.location.href="index.html"; } }
         function toggleDarkMode(cb) { document.body.classList.toggle('dark-mode', cb.checked); localStorage.setItem('darkMode', cb.checked); }
+        function editProfile() {
+            const n = prompt("Edit Name:", document.getElementById('dispName').innerText);
+            if(n) { localStorage.setItem('studentName', n); document.getElementById('dispName').innerText = n; }
+        }
         function uploadImage(input) {
             const file = input.files[0];
             if(file) {
