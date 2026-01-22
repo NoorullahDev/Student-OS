@@ -127,10 +127,17 @@
         
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            // ✅ Fix 1: Login persistence (Session stays active)
+            // ✅ Session saved rahega
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
         const db = firebase.firestore();
+
+        // ✅ Security check: Baghair login ke settings band
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.replace("index.html");
+            }
+        });
 
         window.onload = function() {
             document.getElementById('dispName').innerText = localStorage.getItem('studentName') || "Noor Ullah";
@@ -152,7 +159,6 @@
                     user: localStorage.getItem('studentName') || "Anonymous",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                // ✅ Fix 2: Success Message with NoorullahDev
                 alert("Report sent successfully! NoorullahDev will check it soon.");
                 closeModal();
             } catch (error) {
@@ -179,14 +185,13 @@
             } else if(type === 'factory') {
                 content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE ALL DATA</button><button class="btn btn-outline" style="margin-top:10px;" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'about') {
-                // ✅ Professional About Version
                 content.innerHTML = `
                     <div style="text-align:center;">
                         <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 25px;">
                             <i class="fas fa-cube"></i>
                         </div>
                         <h3 style="margin-bottom:5px;">Student OS Pro</h3>
-                        <p style="font-size: 12px; color: var(--primary); font-weight: 700;">BUILD v3.5.0-PRO-2026</p>
+                        <p style="font-size: 11px; color: var(--primary); font-weight: 800; text-transform:uppercase;">Build v3.5.0-PRO-2026</p>
                         <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
                         <p style="font-size: 13px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;">
                             Student OS is a next-generation productivity environment developed by <strong>Noor Ullah</strong>. 
