@@ -28,7 +28,6 @@
         .section-title { font-size: 12px; font-weight: 700; color: #888; margin: 25px 0 8px 15px; text-transform: uppercase; letter-spacing: 0.5px; }
         .settings-group { background: var(--card-bg); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); }
         .item { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .item:last-child { border-bottom: none; }
         .item-text { flex-grow: 1; font-weight: 500; font-size: 15px; }
         .icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; margin-right: 15px; font-size: 14px; }
         .bg-blue { background: #007aff; } .bg-teal { background: #30b0c7; } .bg-orange { background: #f59e0b; } .bg-red { background: #ef4444; } .bg-purple { background: #5856d6; }
@@ -128,7 +127,7 @@
         
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            // ✅ Fix 1: Login persistent rahega
+            // ✅ Fix 1: Login persistence (Session stays active)
             firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
         const db = firebase.firestore();
@@ -153,7 +152,7 @@
                     user: localStorage.getItem('studentName') || "Anonymous",
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                // ✅ Fix 2: Message with NoorullahDev
+                // ✅ Fix 2: Success Message with NoorullahDev
                 alert("Report sent successfully! NoorullahDev will check it soon.");
                 closeModal();
             } catch (error) {
@@ -179,8 +178,23 @@
                 content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Details"></textarea><button class="btn btn-primary" onclick="sendReport()">Submit</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
             } else if(type === 'factory') {
                 content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE ALL DATA</button><button class="btn btn-outline" style="margin-top:10px;" onclick="closeModal()">Cancel</button>`;
-            } else {
-                content.innerHTML = `<div style="text-align:center;"><h3>Student OS Pro</h3><p>Version 3.5.0. Built by Noor Ullah.</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
+            } else if(type === 'about') {
+                // ✅ Professional About Version
+                content.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 25px;">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <h3 style="margin-bottom:5px;">Student OS Pro</h3>
+                        <p style="font-size: 12px; color: var(--primary); font-weight: 700;">BUILD v3.5.0-PRO-2026</p>
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+                        <p style="font-size: 13px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;">
+                            Student OS is a next-generation productivity environment developed by <strong>Noor Ullah</strong>. 
+                            Built with Cloud Sync, PWA support, and 100GB Local Database technology to help students master their daily habits and academic growth.
+                        </p>
+                        <div style="font-size: 11px; opacity: 0.5;">© 2026 NoorullahDev. All rights reserved.</div>
+                        <button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close Details</button>
+                    </div>`;
             }
         }
 
