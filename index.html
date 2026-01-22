@@ -79,55 +79,34 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
-const firebaseConfig = {
-    apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
-    authDomain: "student-os-82fd5.firebaseapp.com",
-    projectId: "student-os-82fd5",
-    storageBucket: "student-os-82fd5.firebasestorage.app",
-    messagingSenderId: "420206340906",
-    appId: "1:420206340906:web:395cfeb9c487c345e18c53"
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
-// 🔥 AUTO-LOGIN LOGIC (Fixed & Fast)
-// Ye hissa check karta hai ke user pehle se logged in hai ya nahi
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        // Agar user login hai, to seedha dashboard bhej do
-        console.log("Logged in user found:", user.displayName);
-        window.location.replace("dashboard.html"); // .replace use kiya hai taake back na aa sake
-    } else {
-        console.log("No active session found.");
-    }
-});
+  // --- 1. SET PERSISTENCE IMMEDIATELY ---
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+      // Persistence set hone ke baad check karein
+      firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+              // Agar user login hai, toh dashboard par bhej dein
+              window.location.replace("dashboard.html");
+          } else {
+              // Agar login nahi hai, toh login card dikhayein
+              document.querySelector('.login-card').style.opacity = "1";
+          }
+      });
+  });
 
 function loginWithGoogle() {
-    const status = document.getElementById('status');
-    status.style.display = 'block';
-    status.innerText = "Connecting...";
-
     const provider = new firebase.auth.GoogleAuthProvider();
-    
-    // ✅ Session ko LOCAL set karna taake browser yaad rakhe
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            return firebase.auth().signInWithPopup(provider);
-        })
-        .then((result) => {
-            const user = result.user;
-            localStorage.setItem('studentName', user.displayName);
-            localStorage.setItem('studentPhoto', user.photoURL);
-            window.location.href = "dashboard.html";
-        })
-        .catch((error) => {
-            status.innerText = "Error: " + error.message;
-            console.error("Login Failed:", error);
-        });
+    // Popup ke bajaye Redirect use karna mobile par zyada stable hai
+    firebase.auth().signInWithRedirect(provider);
 }
+
+// Redirect ke baad result handle karne ke liye
+firebase.auth().getRedirectResult().then((result) => {
+    if (result.user) {
+        localStorage.setItem('studentName', result.user.displayName);
+        window.location.replace("dashboard.html");
+    }
+});
     </script>
 </body>
 </html>
