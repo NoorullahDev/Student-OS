@@ -80,56 +80,54 @@
 
     <script>
         // --- FIREBASE CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
-            authDomain: "student-os-82fd5.firebaseapp.com",
-            projectId: "student-os-82fd5",
-            storageBucket: "student-os-82fd5.firebasestorage.app",
-            messagingSenderId: "420206340906",
-            appId: "1:420206340906:web:395cfeb9c487c345e18c53",
-            measurementId: "G-JP2D156YWH"
-        };
+const firebaseConfig = {
+    apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
+    authDomain: "student-os-82fd5.firebaseapp.com",
+    projectId: "student-os-82fd5",
+    storageBucket: "student-os-82fd5.firebasestorage.app",
+    messagingSenderId: "420206340906",
+    appId: "1:420206340906:web:395cfeb9c487c345e18c53"
+};
 
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-            // ✅ Fix: User session saved rahega
-            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-        }
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
-        // 🚀 AUTO-REDIRECT: Agar user pehle se login hai toh seedha Dashboard bhej do
-        firebase.auth().onAuthStateChanged((user) => {
-            if (user) {
-                window.location.href = "dashboard.html";
-            }
+// 🔥 AUTO-LOGIN LOGIC (Fixed & Fast)
+// Ye hissa check karta hai ke user pehle se logged in hai ya nahi
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // Agar user login hai, to seedha dashboard bhej do
+        console.log("Logged in user found:", user.displayName);
+        window.location.replace("dashboard.html"); // .replace use kiya hai taake back na aa sake
+    } else {
+        console.log("No active session found.");
+    }
+});
+
+function loginWithGoogle() {
+    const status = document.getElementById('status');
+    status.style.display = 'block';
+    status.innerText = "Connecting...";
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    // ✅ Session ko LOCAL set karna taake browser yaad rakhe
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            return firebase.auth().signInWithPopup(provider);
+        })
+        .then((result) => {
+            const user = result.user;
+            localStorage.setItem('studentName', user.displayName);
+            localStorage.setItem('studentPhoto', user.photoURL);
+            window.location.href = "dashboard.html";
+        })
+        .catch((error) => {
+            status.innerText = "Error: " + error.message;
+            console.error("Login Failed:", error);
         });
-
-        function loginWithGoogle() {
-            const status = document.getElementById('status');
-            status.style.display = 'block';
-            status.innerText = "Opening Google Login...";
-
-            const provider = new firebase.auth.GoogleAuthProvider();
-            
-            firebase.auth().signInWithPopup(provider)
-                .then((result) => {
-                    const user = result.user;
-                    localStorage.setItem('studentName', user.displayName);
-                    localStorage.setItem('studentPhoto', user.photoURL);
-                    status.innerText = "Success! Redirecting...";
-                    window.location.href = "dashboard.html";
-                })
-                .catch((error) => {
-                    status.innerText = "Error: " + error.message;
-                    console.error("Login Failed:", error);
-                });
-        }
-
-        // PWA Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
-            });
-        }
+}
     </script>
 </body>
 </html>
