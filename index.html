@@ -92,7 +92,16 @@
 
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
+            // ✅ Fix: User session saved rahega
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         }
+
+        // 🚀 AUTO-REDIRECT: Agar user pehle se login hai toh seedha Dashboard bhej do
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                window.location.href = "dashboard.html";
+            }
+        });
 
         function loginWithGoogle() {
             const status = document.getElementById('status');
