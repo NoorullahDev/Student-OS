@@ -130,7 +130,6 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIG (Required for Firestore) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
             authDomain: "student-os-82fd5.firebaseapp.com",
@@ -140,7 +139,12 @@
             appId: "1:420206340906:web:395cfeb9c487c345e18c53",
             measurementId: "G-JP2D156YWH"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            // ✅ Fix 1: Auth persistence taake baar baar login na mangay
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        }
         const db = firebase.firestore();
 
         window.onload = function() {
@@ -168,8 +172,9 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                alert("Report sent successfully! Noor Ullah will check it soon.");
-                closeModals();
+                // ✅ Fix 2: Changed NoorUllahDev name and fixed alert flow
+                alert("Report sent successfully! NoorullahDev will check it soon.");
+                closeModal();
             } catch (error) {
                 console.error("Error sending report: ", error);
                 alert("Failed to send report. Check your connection.");
@@ -191,23 +196,30 @@
             m.style.display = 'flex';
 
             if(type === 'help') {
-                content.innerHTML = `<h3>📚 OS Guide</h3><div class="help-item"><h4>📅 My Routine</h4><p>Set daily timetable. Earn XP/Coins.</p></div><div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers.</p></div><button class="btn btn-primary" onclick="closeModal()">Close</button>`;
+                content.innerHTML = `
+                    <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
+                    <div class="help-item"><h4>📅 My Routine</h4><p>Set your daily timetable. Completion of tasks earns you XP and Coins.</p></div>
+                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Track 5 daily prayers. View monthly history to monitor your consistency.</p></div>
+                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Store lectures and PDFs up to 100GB. Use Focus Timer to study without distractions.</p></div>
+                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Create combo splits (Chest+Tricep). Log your PRs and track consistency.</p></div>
+                    <div class="help-item"><h4>💰 Wallet</h4><p>Manage your university expenses and pocket money with monthly logs.</p></div>
+                    <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
             } else if(type === 'factory') {
                 content.innerHTML = `<h3>⚠️ Factory Reset</h3><button class="btn btn-outline" onclick="resetData('vault')">Clear Vault Only</button><button class="btn btn-danger" onclick="resetData('all')">DELETE EVERYTHING</button><button class="btn btn-outline" style="margin-top:20px;" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'report') {
                 content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Describe the issue..."></textarea><button class="btn btn-primary" onclick="sendReport()">Submit Report</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
             } else if(type === 'about') {
-                content.innerHTML = `<div style="text-align:center;"><div style="font-size:50px;">🎓</div><h3>Student OS Pro</h3><p>Version 3.5.0 Build 2026</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
+                content.innerHTML = `<div style="text-align:center;"><div style="font-size:50px;">🎓</div><h3>Student OS Pro</h3><p>Version 3.5.0 Build 2026</p><p style="margin:20px 0; font-size:13px; line-height:1.6;">A complete productivity environment designed for high-performance students. Built by Noor Ullah.</p><button class="btn btn-primary" onclick="closeModal()">Close</button></div>`;
             }
         }
 
         function resetData(target) {
             if(target === 'all') { if(confirm("Are you 100% sure?")) { localStorage.clear(); window.location.href="index.html"; } }
             else if(target === 'vault') { localStorage.removeItem('StudentOS_Vault'); alert("Vault Cleared!"); }
-            closeModals();
+            closeModal();
         }
 
-        function logout() { if(confirm("Logout from Student OS?")) window.location.href="index.html"; }
+        function logout() { if(confirm("Logout from Student OS?")) { firebase.auth().signOut(); window.location.href="index.html"; } }
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         function toggleDarkMode(cb) { document.body.classList.toggle('dark-mode', cb.checked); localStorage.setItem('darkMode', cb.checked); }
         function uploadImage(input) {
