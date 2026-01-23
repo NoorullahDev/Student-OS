@@ -87,7 +87,16 @@
     </div>
 
     <script>
+    
+    // 🚀 Sabse upar ye line lagani hai
+    if (localStorage.getItem('student_os_lock') === 'active') {
+        window.location.replace("dashboard.html");
+    }
+
+    // Iske niche aapka baki purana code (firebaseConfig waghaira) rahega...
+    const firebaseConfig = { ... };
         // 🚀 STEP 1: Sabse upar check (Bina kisi intezar ke)
+        
 if (localStorage.getItem('student_os_lock') === 'active') {
     window.location.replace("dashboard.html");
 }
