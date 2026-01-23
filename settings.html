@@ -167,11 +167,10 @@
             if(type === 'help') {
                 content.innerHTML = `
                     <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
-                    <div class="help-item"><h4>📅 My Routine</h4><p>Har roz ke tasks set karein. Har task complete karne par XP aur Coins milenge jo aapka rank up karenge.</p></div>
+                    <div class="help-item"><h4>📅 My Routine</h4><p>Rozana ke tasks set karein. Task complete karne par XP aur Coins milenge jo aapka level barhayenge.</p></div>
                     <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Apni 5 waqt ki namaz track karein. Monthly history bhi dashboard par dekh sakte hain.</p></div>
-                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Lectures aur PDF files mehfooz karein. Focus Timer ke sath study sessions track karein.</p></div>
-                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Combo splits (Chest+Tricep) banayein aur apne PRs (Personal Records) log karein.</p></div>
-                    <div class="help-item"><h4>💰 Wallet</h4><p>Pocket money aur university ke kharche track karne ke liye behtareen tool.</p></div>
+                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Lectures aur PDF files mehfooz karein aur Focus Timer ke saath study karein.</p></div>
+                    <div class="help-item"><h4>💰 Wallet</h4><p>University ke kharche aur pocket money track karne ke liye behtareen tool.</p></div>
                     <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
             } else if(type === 'report') {
                 content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Details"></textarea><button class="btn btn-primary" onclick="sendReport()">Submit</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
@@ -188,7 +187,7 @@
                         <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border); opacity:0.1;">
                         <p style="font-size: 13px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;">
                             Student OS is a next-generation productivity environment developed by <strong>Noor Ullah</strong>. 
-                            It helps students manage their academic and lifestyle goals in one place with cloud sync and local data security.
+                            Built for students to master their daily habits and academic growth.
                         </p>
                         <div style="font-size: 11px; opacity: 0.5;">© 2026 NoorullahDev. All rights reserved.</div>
                         <button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close Details</button>
@@ -198,10 +197,10 @@
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-        // ✅ [FIXED LOGOUT]: Clear memory lock and sign out
+        // ✅ [FIXED LOGOUT]: Memory lock saaf karein aur exit karein
         function logout() { 
             if(confirm("Bhai, Logout karna chahte ho?")) { 
-                localStorage.removeItem('student_os_lock'); // Memory lock clear karein
+                localStorage.removeItem('student_os_lock'); // Is se Gmail mangay ga dobara
                 firebase.auth().signOut().then(() => { 
                     window.location.replace("index.html"); 
                 }); 
