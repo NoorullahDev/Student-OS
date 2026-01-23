@@ -115,7 +115,6 @@
     <div class="modal-overlay" id="modal"><div class="modal-box" id="modalContent"></div></div>
 
     <script>
-        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
             authDomain: "student-os-82fd5.firebaseapp.com",
@@ -131,10 +130,9 @@
         }
         const db = firebase.firestore();
 
-        // ✅ Security check: Redirect if not logged in
+        // ✅ [IRON-CLAD SECURITY SCRIPT]
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) { 
-                localStorage.removeItem('user_persistent_login'); // Security clear
+            if (!user && localStorage.getItem('student_os_lock') !== 'active') { 
                 window.location.replace("index.html"); 
             }
         });
@@ -159,7 +157,7 @@
                 });
                 alert("Report sent successfully! NoorullahDev will check it soon.");
                 closeModal();
-            } catch (error) { alert("Failed to send report. Check your connection."); }
+            } catch (error) { alert("Failed to send report."); }
         }
 
         function openModal(type) {
@@ -167,22 +165,43 @@
             const content = document.getElementById('modalContent');
             m.style.display = 'flex';
             if(type === 'help') {
-                content.innerHTML = `<h3>📚 OS Guide</h3><div class="help-item"><h4>📅 Routine</h4><p>Set daily tasks to earn XP.</p></div><div class="help-item"><h4>📂 Vault</h4><p>Secure 100GB Local Storage.</p></div><button class="btn btn-primary" onclick="closeModal()">Close</button>`;
+                content.innerHTML = `
+                    <h3 style="margin-bottom:15px; text-align:center;">📚 OS Guide & Help</h3>
+                    <div class="help-item"><h4>📅 My Routine</h4><p>Har roz ke tasks set karein. Har task complete karne par XP aur Coins milenge jo aapka rank up karenge.</p></div>
+                    <div class="help-item"><h4>🕌 Prayer Tracker</h4><p>Apni 5 waqt ki namaz track karein. Monthly history bhi dashboard par dekh sakte hain.</p></div>
+                    <div class="help-item"><h4>📂 Uni Vault</h4><p>Lectures aur PDF files mehfooz karein. Focus Timer ke sath study sessions track karein.</p></div>
+                    <div class="help-item"><h4>💪 Gym Planner</h4><p>Combo splits (Chest+Tricep) banayein aur apne PRs (Personal Records) log karein.</p></div>
+                    <div class="help-item"><h4>💰 Wallet</h4><p>Pocket money aur university ke kharche track karne ke liye behtareen tool.</p></div>
+                    <button class="btn btn-primary" onclick="closeModal()">Close Guide</button>`;
             } else if(type === 'report') {
                 content.innerHTML = `<h3>🪲 Report Bug</h3><input type="text" id="bugSub" class="inp-field" placeholder="Subject"><textarea id="bugDesc" class="inp-field" style="height:100px;" placeholder="Details"></textarea><button class="btn btn-primary" onclick="sendReport()">Submit</button><button class="btn btn-outline" onclick="closeModal()">Back</button>`;
             } else if(type === 'factory') {
                 content.innerHTML = `<h3>⚠️ Reset</h3><button class="btn btn-danger" onclick="localStorage.clear(); window.location.href='index.html'">DELETE DATA</button><button class="btn btn-outline" onclick="closeModal()">Cancel</button>`;
             } else if(type === 'about') {
-                content.innerHTML = `<div style="text-align:center;"><h3>Student OS Pro</h3><p>Build v3.5.0-PRO-2026</p><hr style="margin:15px 0; opacity:0.2;"><p style="font-size:13px; line-height:1.6;">Next-gen productivity environment by <b>Noor Ullah</b>. Optimized for academic growth and habit mastery.</p><button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close</button></div>`;
+                content.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 25px;">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <h3 style="margin-bottom:5px;">Student OS Pro</h3>
+                        <p style="font-size: 11px; color: var(--primary); font-weight: 800; text-transform:uppercase;">Build v3.5.0-PRO-2026</p>
+                        <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border); opacity:0.1;">
+                        <p style="font-size: 13px; line-height: 1.6; opacity: 0.8; margin-bottom: 20px;">
+                            Student OS is a next-generation productivity environment developed by <strong>Noor Ullah</strong>. 
+                            It helps students manage their academic and lifestyle goals in one place with cloud sync and local data security.
+                        </p>
+                        <div style="font-size: 11px; opacity: 0.5;">© 2026 NoorullahDev. All rights reserved.</div>
+                        <button class="btn btn-primary" onclick="closeModal()" style="margin-top:20px;">Close Details</button>
+                    </div>`;
             }
         }
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-        // ✅ FIXED LOGOUT: Ye browser ki memory aur session dono saaf karega
+        // ✅ [FIXED LOGOUT]: Clear memory lock and sign out
         function logout() { 
-            if(confirm("Logout?")) { 
-                localStorage.removeItem('user_persistent_login'); // Fast-check status clear karein
+            if(confirm("Bhai, Logout karna chahte ho?")) { 
+                localStorage.removeItem('student_os_lock'); // Memory lock clear karein
                 firebase.auth().signOut().then(() => { 
                     window.location.replace("index.html"); 
                 }); 
