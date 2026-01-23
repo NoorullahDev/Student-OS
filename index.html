@@ -35,7 +35,6 @@
             text-align: center;
             width: 90%; max-width: 400px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            opacity: 1;
         }
 
         .app-logo {
@@ -66,7 +65,6 @@
             background: #0f172a; z-index: 9999; display: flex; 
             align-items: center; justify-content: center; flex-direction: column; color: white;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -86,18 +84,15 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
             Continue with Google
         </button>
-
-        <div id="status" style="margin-top:20px; font-size:12px; color:#818cf8; display:none;">Connecting...</div>
     </div>
 
     <script>
-        // ✅ [DEDICATED FAST CHECK]
-        // Ye line Firebase se pehle browser ki memory dekhegi
-        if (localStorage.getItem('user_persistent_login') === 'true') {
+        // ✅ 🚀 [IRON-CLAD REDIRECT]
+        // Ye browser memory se check karega aur page load hote hi redirect kar dega
+        if (localStorage.getItem('student_os_lock') === 'active') {
             window.location.replace("dashboard.html");
         }
 
-        // --- 1. FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
             authDomain: "student-os-82fd5.firebaseapp.com",
@@ -108,32 +103,22 @@
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-        // ✅ 2. AUTO-LOGIN GUARD: Background se aane par foran check karega
         firebase.auth().onAuthStateChanged((user) => {
             const loader = document.getElementById('auth-loading');
             if (user) {
-                // Persistent memory set karein
-                localStorage.setItem('user_persistent_login', 'true');
+                // Lock laga do memory mein
+                localStorage.setItem('student_os_lock', 'active');
                 window.location.replace("dashboard.html");
             } else {
-                // Agar user logged out hai toh button dikhayein
-                localStorage.removeItem('user_persistent_login');
                 loader.style.display = "none";
             }
         });
 
-        // ✅ 3. LOGIN WITH PERSISTENCE
         function loginWithGoogle() {
-            const status = document.getElementById('status');
-            status.style.display = 'block';
             const provider = new firebase.auth.GoogleAuthProvider();
-            
-            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-                .then(() => {
-                    return firebase.auth().signInWithPopup(provider);
-                })
+            firebase.auth().signInWithPopup(provider)
                 .then(() => { 
-                    localStorage.setItem('user_persistent_login', 'true');
+                    localStorage.setItem('student_os_lock', 'active');
                     window.location.href = "dashboard.html"; 
                 })
                 .catch((e) => { 
