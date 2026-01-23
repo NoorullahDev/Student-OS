@@ -87,45 +87,40 @@
     </div>
 
     <script>
-        // ✅ 🚀 [IRON-CLAD REDIRECT]
-        // Ye browser memory se check karega aur page load hote hi redirect kar dega
-        if (localStorage.getItem('student_os_lock') === 'active') {
-            window.location.replace("dashboard.html");
-        }
+        // 🚀 STEP 1: Sabse upar check (Bina kisi intezar ke)
+if (localStorage.getItem('student_os_lock') === 'active') {
+    window.location.replace("dashboard.html");
+}
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
-            authDomain: "student-os-82fd5.firebaseapp.com",
-            projectId: "student-os-82fd5",
-            storageBucket: "student-os-82fd5.firebasestorage.app",
-            messagingSenderId: "420206340906",
-            appId: "1:420206340906:web:395cfeb9c487c345e18c53"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const firebaseConfig = {
+    apiKey: "AIzaSyAgH9j_fNkJugmrMqlQsyrA_DZTAP0EVw4",
+    authDomain: "student-os-82fd5.firebaseapp.com",
+    projectId: "student-os-82fd5",
+    storageBucket: "student-os-82fd5.firebasestorage.app",
+    messagingSenderId: "420206340906",
+    appId: "1:420206340906:web:395cfeb9c487c345e18c53"
+};
 
-        firebase.auth().onAuthStateChanged((user) => {
-            const loader = document.getElementById('auth-loading');
-            if (user) {
-                // Lock laga do memory mein
-                localStorage.setItem('student_os_lock', 'active');
-                window.location.replace("dashboard.html");
-            } else {
-                loader.style.display = "none";
-            }
-        });
+firebase.initializeApp(firebaseConfig);
 
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider)
-                .then(() => { 
-                    localStorage.setItem('student_os_lock', 'active');
-                    window.location.href = "dashboard.html"; 
-                })
-                .catch((e) => { 
-                    alert("Error: " + e.message); 
-                    document.getElementById('auth-loading').style.display = "none"; 
-                });
-        }
+// 🚀 STEP 2: Firebase Check (Sirf Loader hatane ke liye)
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        localStorage.setItem('student_os_lock', 'active');
+        window.location.replace("dashboard.html");
+    } else {
+        // Agar login nahi hai, sirf tab loader hato aur button dikhao
+        document.getElementById('auth-loading').style.display = "none";
+    }
+});
+
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then(() => {
+        localStorage.setItem('student_os_lock', 'active');
+        window.location.href = "dashboard.html";
+    }).catch(e => alert(e.message));
+}
     </script>
 </body>
 </html>
