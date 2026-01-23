@@ -166,6 +166,15 @@
     </main>
 
     <script>
+    // 🛡️ Dashboard Guard: Baghair login ke koi andar na aaye
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            // Agar waqai logout hai, toh wapis bhej do
+            window.location.replace("index.html");
+        }
+    });
+
+    // Iske niche aapka dashboard ka baqi code (XP, Level waghaira) chalne dein...
 
     // 🛡️ Dashboard khulte hi ye check karega
     if (localStorage.getItem('student_os_lock') !== 'active') {
