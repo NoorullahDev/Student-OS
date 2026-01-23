@@ -166,6 +166,13 @@
     </main>
 
     <script>
+
+    // 🛡️ Dashboard khulte hi ye check karega
+    if (localStorage.getItem('student_os_lock') !== 'active') {
+        window.location.replace("index.html");
+    }
+
+    // Iske niche baki Dashboard ka code chalne dein...
         // ✅ [IRON-CLAD GUARD]: Agar login lock nahi hai toh wapis bhej do
         if (localStorage.getItem('student_os_lock') !== 'active') {
             window.location.replace("index.html");
